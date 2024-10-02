@@ -20,8 +20,8 @@ This script is designed to test latency and bandwidth between virtual machines (
 
 2. Clone the repository:
     ```sh
-    git clone https://github.com/your-repo/azure-zone-latency-test.git
-    cd azure-zone-latency-test/azure-zone-latency-bandwidth-test
+    git clone https://github.com/pichuang/azure-infra-tools.git
+    cd azure-infra-tools/azure-zone-latency-bandwidth-test
     ```
 
 3. Install the required Python packages:
