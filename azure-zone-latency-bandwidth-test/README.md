@@ -11,20 +11,29 @@ This script is designed to test latency and bandwidth between virtual machines (
 
 ## Installation
 
-1. Clone the repository:
+1. Open Cloud Shell or your own local terminal
+  ```sh
+  https://shell.azure.com
+  ```
+
+2. Clone the repository:
     ```sh
     git clone https://github.com/your-repo/azure-zone-latency-test.git
-    cd azure-zone-latency-test
+    cd azure-zone-latency-test/azure-zone-latency-bandwidth-test
     ```
 
-2. Install the required Python packages:
+3. Install the required Python packages:
     ```sh
-    pip install -r requirements.txt
+    bash ./install.sh
+    # Or
+    # pip install -r requirements.txt
     ```
 
-3. Ensure you are logged in to Azure CLI:
+4. Ensure you are logged in to Azure CLI:
     ```sh
     az login
+    # Or
+    # az login --tenant <your-tenant-id> --use-device-code
     ```
 
 ## Usage
@@ -38,7 +47,7 @@ This script is designed to test latency and bandwidth between virtual machines (
 - `--location`: Azure Region (default: `southeastasia`)
 - `--enable-accelerated-networking`: Enable Accelerated Networking (default: `True`)
 - `--admin-username`: Admin username for the VM (default: `repairman`)
-- `--admin-password`: Admin password for the VM (default: `f5Q7tjAa2XheJE8NqDRnMP`)
+- `--admin-password`: Admin password for the VM (default: `xxxxxxxxxxxxxx`)
 - `--network-cidr`: Network CIDR (default: `192.168.100.0/24`)
 - `--force-delete`: Force delete the resource group (optional)
 - `--run`: Run latency and bandwidth tests directly (optional)
@@ -50,12 +59,38 @@ This script is designed to test latency and bandwidth between virtual machines (
 
 1. **Create Resources and Run Tests:**
     ```sh
-    ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-zone-test
+    ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-hello-sea
+    ```
+
+    Output:
+    ```sh
+    phil [ ~/azure-infra-tools/azure-zone-latency-bandwidth-test ]$ ./azure-zone-latency-bandwidth-test.py --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx --resource-group-name rg-hello-sea
+    INFO - Resource group rg-hello-sea has been created.
+    INFO - VNet azping-mgmt-vnet has been created.
+    INFO - Subnet default has been created.
+    INFO - Network security group azping-nsg has been created.
+    INFO - VM azping-vm1 has been created.
+    INFO - VM azping-vm2 has been created.
+    INFO - VM azping-vm3 has been created.
+    INFO - All VMs created. Checking network reachability...
+    INFO - Checking if VMs are reachable...
+    ...omitted...
     ```
 
 2. **Show VM Information:**
     ```sh
-    ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-zone-test --show-info
+    ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-hello-sea --show-infof5Q7tjAa2XheJE8NqDRnMP\r
+    ```
+
+    Output:
+    ```
+    phil [ ~/azure-infra-tools/azure-zone-latency-bandwidth-test ]$ ./azure-zone-latency-bandwidth-test.py --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx --resource-group-name rg-hello-sea --show-info
+    INFO - VM Name: azping-vm1, IP: a.a.a.a, Username: repairman, Password: xxxxxxxxxxxxxx
+    INFO - To login azping-vm1 with one command: expect -c 'spawn ssh repairman@a.a.a.a; expect "password:"; send "xxxxxxxxxxxxxx\r"; interact'
+    INFO - VM Name: azping-vm2, IP: b.b.b.b, Username: repairman, Password: xxxxxxxxxxxxxx
+    INFO - To login azping-vm2 with one command: expect -c 'spawn ssh repairman@b.b.b.b; expect "password:"; send "xxxxxxxxxxxxxx\r"; interact'
+    INFO - VM Name: azping-vm3, IP: c.c.c.c, Username: repairman, Password: xxxxxxxxxxxxxx
+    INFO - To login azping-vm3 with one command: expect -c 'spawn ssh repairman@c.c.c.c; expect "password:"; send "xxxxxxxxxxxxxx\r"; interact'
     ```
 
 3. **Force Delete Resource Group:**

@@ -14,6 +14,7 @@ import re
 import logging
 import subprocess
 import json
+import os
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 logging.getLogger('azure').setLevel(logging.WARNING)
@@ -500,11 +501,17 @@ def wait_for_vms_to_be_ready(vm_ips, timeout=240):
     """
     logging.info("Checking if VMs are reachable...")
     start_time = time.time()
+    is_cloud_shell = os.getenv('ACC_CLOUD') is not None
+
     while time.time() - start_time < timeout:
         all_reachable = True
         for ip in vm_ips:
+            if is_cloud_shell:
+                logging.info(f"Skipping ping check for {ip} in Azure Cloud Shell environment.")
+                continue
+
             try:
-                result = subprocess.run(["ping", "-c", "1", ip], capture_output=True, text=True)
+                result = subprocess.run(["ping", "-c", "1", "-W", "10", ip], capture_output=True, text=True)
                 logging.debug(result.stdout)
                 if result.returncode != 0:
                     all_reachable = False
@@ -513,6 +520,7 @@ def wait_for_vms_to_be_ready(vm_ips, timeout=240):
                 logging.error(f"Error pinging {ip}: {e}")
                 all_reachable = False
                 break
+
         if all_reachable:
             logging.info("All VMs are reachable.")
             return
