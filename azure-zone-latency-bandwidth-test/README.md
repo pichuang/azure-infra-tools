@@ -100,6 +100,12 @@ This script is designed to test latency and bandwidth between virtual machines (
     ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-hello-sea --force-delete
     ```
 
+    Output:
+    ```sh
+    phil [ ~/azure-infra-tools/azure-zone-latency-bandwidth-test ]$ ./azure-zone-latency-bandwidth-test.py --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx --resource-group-name rg-hello-sea --force-delete
+    INFO - Resource group rg-hello-sea deletion initiated, No need to wait for the deletion to complete
+    ```
+
 4. **Run All Tests Directly:**
     ```sh
     ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-hello-sea --run
