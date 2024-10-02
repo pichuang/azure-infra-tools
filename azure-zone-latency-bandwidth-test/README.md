@@ -2,6 +2,8 @@
 
 This script is designed to test latency and bandwidth between virtual machines (VMs) in different availability zones within an Azure region. It automates the creation of resource groups, virtual networks, network security groups, and VMs, and then runs latency and bandwidth tests using `iperf3` and `sockperf`.
 
+![](./images/screenshot.png)
+
 ## Prerequisites
 
 - Python 3.9 or higher
@@ -79,7 +81,7 @@ This script is designed to test latency and bandwidth between virtual machines (
 
 2. **Show VM Information:**
     ```sh
-    ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-hello-sea --show-infof5Q7tjAa2XheJE8NqDRnMP\r
+    ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-hello-sea --show-info
     ```
 
     Output:
@@ -95,12 +97,29 @@ This script is designed to test latency and bandwidth between virtual machines (
 
 3. **Force Delete Resource Group:**
     ```sh
-    ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-zone-test --force-delete
+    ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-hello-sea --force-delete
     ```
 
-4. **Run Only Latency Tests:**
+4. **Run All Tests Directly:**
     ```sh
-    ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-zone-test --skip-bandwidth-test
+    ./azure-zone-latency-bandwidth-test.py --subscription <your-subscription-id> --resource-group-name rg-hello-sea --run
+    ```
+
+    Output:
+    ```sh
+    phil [ ~/azure-infra-tools/azure-zone-latency-bandwidth-test ]$ ./azure-zone-latency-bandwidth-test.py --subscription 0a4374d1-bc72-46f6-a4ae-a9d8401369db --resource-group-name rg-hello-sea --run 
+    INFO - Public IP address for azping-vm1: a.a.a.a
+    INFO - Public IP address for azping-vm2: b.b.b.b
+    INFO - Public IP address for azping-vm3: c.c.c.c
+    INFO - Running Bandwidth test from azping-vm1 to azping-vm2 via Public IP
+    INFO - Running Bandwidth test from azping-vm1 to azping-vm2 via Private IP
+    INFO - Running Latency   test from azping-vm1 to azping-vm2 via Public IP
+    INFO - Running Latency   test from azping-vm1 to azping-vm2 via Private IP
+    INFO - Running Bandwidth test from azping-vm1 to azping-vm3 via Public IP
+    INFO - Running Bandwidth test from azping-vm1 to azping-vm3 via Private IP
+    INFO - Running Latency   test from azping-vm1 to azping-vm3 via Public IP
+    INFO - Running Latency   test from azping-vm1 to azping-vm3 via Private IP
+    ...omitted...
     ```
 
 5. **Run Only Bandwidth Tests:**
