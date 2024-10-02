@@ -1,0 +1,5 @@
+azure-mgmt-network
+azure-mgmt-resource
+azure-mgmt-compute
+azure-identity
+paramiko
