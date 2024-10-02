@@ -14,9 +14,9 @@ This script is designed to test latency and bandwidth between virtual machines (
 ## Installation
 
 1. Open Cloud Shell or your own local terminal
-  ```sh
-  https://shell.azure.com
-  ```
+    ```sh
+    https://shell.azure.com
+    ```
 
 2. Clone the repository:
     ```sh
