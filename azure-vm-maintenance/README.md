@@ -42,7 +42,7 @@ This project provides a set of scripts and tools to manage and maintain Azure Vi
 
 ### Prepare CSV file
 
-Example CSV file: [vm-protect.example.csv](vm-protect.example.csv)
+Example CSV file: [1-vm-protect.example.csv](1-vm-protect.example.csv)
 
 #### Check VM Details
 
