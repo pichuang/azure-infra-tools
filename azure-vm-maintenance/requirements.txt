@@ -4,6 +4,7 @@ azure-identity==1.19.0
 azure-mgmt-compute==33.0.0
 azure-mgmt-core==1.5.0
 azure-mgmt-subscription==3.1.1
+azure-mgmt-recoveryservicesbackup==9.1.0
 certifi==2024.8.30
 cffi==1.17.1
 charset-normalizer==3.4.0

@@ -8,13 +8,17 @@ import pandas as pd
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.compute.models import Snapshot, DiskCreateOption, CreationData, NetworkAccessPolicy
 from azure.mgmt.subscription import SubscriptionClient
+from azure.mgmt.recoveryservicesbackup import RecoveryServicesBackupClient
 from azure.identity import DefaultAzureCredential
-from azure.core.exceptions import HttpResponseError
+from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
 
 # Read dotenv file
 config = dotenv_values("0-az-vm-protect.env")
 VM_PROJECT_CSV = config['VM_PROJECT_CSV']
 VM_SNAPSHOT_POSTFIX = config['VM_SNAPSHOT_POSTFIX']
+VAULT_RESOURCE_GROUP_NAME = config['VAULT_RESOURCE_GROUP_NAME']
+VAULT_NAME = config['VAULT_NAME']
+VAULT_BACKUP_POLICY = config['VAULT_BACKUP_POLICY']
 
 # Initialize data
 pd_data = pd.DataFrame()
@@ -116,7 +120,20 @@ def snapshot_disk(subscription: str, resource_group: str, vm_name: str, disk_nam
     do_snapshot.wait()
     print("{:=^50s}".format(f"Snapshot '{snapshot_name}' of disk '{disk_name}' of VM '{vm_name}' in resource group '{resource_group}' created"))
 
-def is_vault_exists(subscription: str, resource_group: str, vault_name: str) -> bool:
+# def is_vault_exists(subscription_id: str, resource_group: str, vault_name: str) -> bool:
+#     """Check if the specified exists using Azure SDK."""
+#     vault_client = RecoveryServicesBackupClient(credential=credential, subscription_id=subscription_id)
+    
+#     try:
+#         vault_client.vaults.get(resource_group, vault_name)
+#         vault_client.GetTieringCostOperationResultOperations()
+#         return True
+#     except ResourceNotFoundError:
+#         return False
+
+
+def backup_disk(subscription: str, resource_group: str, vm_name: str, disk_name: str, location: str) -> None:
+    """Backup the specified disk to Azure Backup vault."""
     pass
 
 
@@ -126,7 +143,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Azure VM Maintenance", epilog="Example: az-vm-matinenance.py --check")
     parser.add_argument("--show-csv", action="store_true", help=" Only show CSV file content, do not perform any action")
     parser.add_argument("--check", action="store_true", help="Check more VM details, no snapshot")
-    parser.add_argument("--snapshot", action="store_true", help="Snapshot VM disks (Development)")
+    parser.add_argument("--snapshot", action="store_true", help="Snapshot VM disks")
+    # parser.add_argument("--backup", action="store_true", help="Backup VM disks to Azure Backup vault (development)")
+
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
@@ -162,6 +181,13 @@ def main() -> None:
             snapshot_disk(format_subscription_name(pd_data.loc[index]['SubscriptionIdorName']), pd_data.loc[index]['ResourceGroupName'], pd_data.loc[index]['VMName'], pd_data.loc[index]['OSDisk'], pd_data.loc[index]['Location'])
             if pd_data.loc[index]['DataDisk']:
                 snapshot_disk(format_subscription_name(pd_data.loc[index]['SubscriptionIdorName']), pd_data.loc[index]['ResourceGroupName'], pd_data.loc[index]['VMName'], pd_data.loc[index]['DataDisk'], pd_data.loc[index]['Location'])
+
+    # if args.backup:
+    #     #XXX Can not check if the vault exists
+
+    #     # Backup all disks of all VMs
+    #     for index in pd_data.index:
+    #         pass
 
 
 if __name__ == "__main__":
