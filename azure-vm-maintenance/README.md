@@ -2,12 +2,13 @@
 
 This project provides a set of scripts and tools to manage and maintain Azure Virtual Machines (VMs). It includes functionalities for listing VM details and creating snapshots of VM disks.
 
+![](./images/screenshot.png)
+
 ## Prerequisites
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - Azure account with necessary permissions
 - Azure CLI installed and configured
-- Virtual environment setup with `rye`
 
 ## Installation
 
