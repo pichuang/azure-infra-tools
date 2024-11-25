@@ -113,7 +113,7 @@ This script is designed to test latency and bandwidth between virtual machines (
 
     Output:
     ```sh
-    phil [ ~/azure-infra-tools/azure-zone-latency-bandwidth-test ]$ ./azure-zone-latency-bandwidth-test.py --subscription 0a4374d1-bc72-46f6-a4ae-a9d8401369db --resource-group-name rg-hello-sea --run 
+    phil [ ~/azure-infra-tools/azure-zone-latency-bandwidth-test ]$ ./azure-zone-latency-bandwidth-test.py --subscription 0a4374d1-bc72-46f6-a4ae-a9d8401369db --resource-group-name rg-hello-sea --run
     INFO - Public IP address for azping-vm1: a.a.a.a
     INFO - Public IP address for azping-vm2: b.b.b.b
     INFO - Public IP address for azping-vm3: c.c.c.c

@@ -1,0 +1,12 @@
+SubscriptionIdorName,ResourceGroupName,VMName
+subscription-sandbox-any-projects,rg-vm-migration,vm-case1
+0a4374d1-bc72-46f6-a4ae-a9d8401369db,rg-vm-migration,vm-case2
+subscription-sandbox-any-projects,rg-vm-migration,vm-case3
+0a4374d1-bc72-46f6-a4ae-a9d8401369db,rg-vm-migration,vm-case4
+subscription-sandbox-any-projects,rg-vm-migration,vm-case5
+0a4374d1-bc72-46f6-a4ae-a9d8401369db,rg-vm-migration,vm-case6
+subscription-sandbox-any-projects,rg-vm-migration,vm-case7
+0a4374d1-bc72-46f6-a4ae-a9d8401369db,rg-vm-migration,vm-case8
+
+
+
