@@ -159,7 +159,7 @@ def create_network_security_group(network_client, resource_group_name, nsg_name,
         priority=130,
         name='outbound-any-any'
     )
-    
+
     nsg_params = NetworkSecurityGroup(location=location, security_rules=[ssh_rule, iperf3_rule, icmp_rule, asn_rule, sockperf_rule,two_ping_rule, outbound_rule])
     network_client.network_security_groups.begin_create_or_update(resource_group_name, nsg_name, nsg_params).result()
     logging.info(f"Network security group {nsg_name} has been created.")
@@ -185,11 +185,11 @@ def create_vm_without_progress(compute_client, network_client, resource_client, 
         enable_accelerated_networking (bool): Whether to enable accelerated networking.
     """
     subnet_info = network_client.subnets.get(resource_group_name, vnet_name, subnet_name)
-    
+
     nic_name = f"{vm_name}-nic"
     ip_config_name = f"{vm_name}-ipconfig"
     public_ip_name = f"{vm_name}-pip"
-    
+
     public_ip_params = {
         'location': location,
         'public_ip_allocation_method': 'Static',
@@ -197,7 +197,7 @@ def create_vm_without_progress(compute_client, network_client, resource_client, 
         'zones': [zone]
     }
     public_ip = network_client.public_ip_addresses.begin_create_or_update(resource_group_name, public_ip_name, public_ip_params).result()
-    
+
     nic_params = {
         'location': location,
         'ip_configurations': [{
@@ -209,7 +209,7 @@ def create_vm_without_progress(compute_client, network_client, resource_client, 
         'enable_accelerated_networking': enable_accelerated_networking
     }
     nic = network_client.network_interfaces.begin_create_or_update(resource_group_name, nic_name, nic_params).result()
-    
+
     vm_params = {
         'location': location,
         'hardware_profile': {'vm_size': vm_type},
@@ -285,7 +285,7 @@ def create_ssh_client(ip_address, username, password, skip_setup=False):
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(ip_address, username=username, password=password)
         logging.debug(f"SSH connection established with {ip_address}")
-        
+
         if not skip_setup:
             # Check if the repository is already cloned and iperf3 is running
             stdin, stdout, stderr = client.exec_command("ls azure-network-measurement && pgrep iperf3")
@@ -300,7 +300,7 @@ def create_ssh_client(ip_address, username, password, skip_setup=False):
                     "git clone https://github.com/pichuang/azure-network-measurement.git",
                     "cd azure-network-measurement && sudo bash all-in-one-install.sh &"
                 ]
-                
+
                 for command in commands:
                     stdin, stdout, stderr = client.exec_command(command)
                     logging.debug(stdout.read().decode())
@@ -421,7 +421,7 @@ def run_latency_bandwidth_tests(network_client, resource_group_name, vm_names, a
                     # Latency Test using sockperf (Private IP)
                     target_ip = get_private_ip_address(network_client, resource_group_name, target_vm_name)
                     latency_private[i][j] = run_latency_test(client, vm_name, target_vm_name, target_ip, is_public=False)
-    
+
     # Show Tenant ID, Subscription ID, and Location
     logging.info("Latency (Public IP):")
     logging.info("         ----------------------------------------------")
@@ -648,7 +648,7 @@ def main():
     args = parser.parse_args()
 
     credential = DefaultAzureCredential()
-    
+
     if args.tenant:
         if re.match(r'^[0-9a-fA-F-]{36}$', args.tenant):
             tenant_id = args.tenant
