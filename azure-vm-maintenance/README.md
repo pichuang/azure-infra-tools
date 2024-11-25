@@ -48,14 +48,14 @@ Example CSV file: [vm-protect.example.csv](vm-protect.example.csv)
 
 To list VM details, run:
 ```bash
-python src/az-vm-matinenance.py --check
+python az-vm-matinenance.py --check
 ```
 
 #### Snapshot VM Disks
 
 To create snapshots of VM disks, run:
 ```bash
-python src/az-vm-matinenance.py --snapshot
+python az-vm-matinenance.py --snapshot
 ```
 
 ### Examples
