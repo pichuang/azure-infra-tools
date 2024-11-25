@@ -120,12 +120,18 @@ def main() -> None:
     """Main function to execute the script."""
 
     parser = argparse.ArgumentParser(description="Azure VM Maintenance", epilog="Example: az-vm-matinenance.py --check")
+    parser.add_argument("--show-csv", action="store_true", help="Show CSV file")
     parser.add_argument("--check", action="store_true", help="Check VM details")
     parser.add_argument("--snapshot", action="store_true", help="Snapshot VM disks")
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
     args = parser.parse_args()
+
+    if args.show_csv:
+        # Read CSV file
+        pd_data = read_csv_file(VM_PROJECT_CSV)
+        print(pd_data)
 
     if args.check:
         # Read CSV file
