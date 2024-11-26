@@ -48,33 +48,33 @@ Example CSV file: [1-vm-protect.example.csv](1-vm-protect.example.csv)
 
 To list VM details, run:
 ```bash
-python az-vm-matinenance.py --check
+python az-vm-maintenance.py --check
 ```
 
 #### Snapshot VM Disks
 
 To create snapshots of VM disks, run:
 ```bash
-python az-vm-matinenance.py --snapshot
+python az-vm-maintenance.py --snapshot
 ```
 
 #### Check Backup Protection
 
 To check if the VM has backup protection enabled, run:
 ```bash
-python az-vm-matinenance.py --check-backup
+python az-vm-maintenance.py --check-backup
 ```
 
 ### Examples
 
 1. Check VM details
     ```bash
-    ./az-vm-matinenance.py --check
+    ./az-vm-maintenance.py --check
     ```
 
     Output:
     ```
-    $ ./az-vm-matinenance.py --check
+    $ ./az-vm-maintenance.py --check
                       SubscriptionIdorName ResourceGroupName    VMName        OSDisk        DataDisk Location
     0     subscription-sandbox-any-projects   rg-vm-migration  vm-case1  osdisk-case1            None  eastus2
     1  0a4374d1-bc72-46f6-a4ae-a9d8401369db   rg-vm-migration  vm-case2  osdisk-case2  datadisk-case2  eastus2
