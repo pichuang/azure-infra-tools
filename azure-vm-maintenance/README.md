@@ -58,6 +58,13 @@ To create snapshots of VM disks, run:
 python az-vm-matinenance.py --snapshot
 ```
 
+#### Check Backup Protection
+
+To check if the VM has backup protection enabled, run:
+```bash
+python az-vm-matinenance.py --check-backup
+```
+
 ### Examples
 
 1. Check VM details
