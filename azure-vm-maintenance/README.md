@@ -60,6 +60,8 @@ python az-vm-maintenance.py --snapshot
 
 #### Check Backup Protection
 
+![check-backup](./images/screenshot-1.png)
+
 To check if the VM has backup protection enabled, run:
 ```bash
 python az-vm-maintenance.py --check-backup
