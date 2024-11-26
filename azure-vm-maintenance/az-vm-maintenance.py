@@ -241,27 +241,59 @@ def snapshot_disk(subscription: str, resource_group: str, vm_name: str, disk_nam
     print(f"{f'Snapshot {snapshot_name} of disk {disk_name} of VM {vm_name} in resource group {resource_group} created':=^50s}")
 
 def backup_protection_check_vm(subscription: str, resource_group: str, vm_name: str) -> None:
-    """Check if the VM has backup protection enabled
+    """
+    Check if the VM has backup protection enabled
 
     Azure CLI command:
     az backup protection check-vm \
         --resource-group ${VM_RESOUCE_GROUP_NAME} \
         --vm ${VM_NAME}
     """
+
+
     pass
 
 def backup_protection_enable_vm(subscription: str, resource_group: str, vm_name: str) -> None:
-    """Enable backup protection for a VM."""
+    """
+    Enable backup protection for a VM.
+
+    Azure CLI command:
+    az backup protection enable-for-vm \
+        --subscription ${VAULT_SUBSCRIPTION} \
+        --resource-group ${VAULT_RESOURCE_GROUP_NAME} \
+        --vault-name ${VAULT_NAME} \
+        --policy-name ${VAULT_BACKUP_POLICY} \
+        --vm $(az vm show -g ${VM_RESOURCE_GROUP} -n ${VM_NAME} --query id | tr -d '"')
+    """
+
+
     pass
 
 def main() -> None:
     """Parse command-line arguments and execute the appropriate VM maintenance action."""
 
-    parser = argparse.ArgumentParser(description="Azure VM Maintenance", epilog="Example: az-vm-matinenance.py --check")
-    parser.add_argument("--show-csv", action="store_true", help=" Only show CSV file content, do not perform any action")
-    parser.add_argument("--check", action="store_true", help="Check more VM details, no snapshot")
-    parser.add_argument("--snapshot", action="store_true", help="Snapshot VM disks")
-    parser.add_argument("--backup", action="store_true", help="Backup VM disks to Azure Backup vault (development)")
+    parser = argparse.ArgumentParser(
+        description="Azure VM Maintenance",
+        epilog="Example: az-vm-matinenance.py --check")
+    parser.add_argument(
+        "--show-csv",
+        action="store_true",
+        help=" Only show CSV file content, do not perform any action")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check more VM details, no snapshot"
+    )
+    parser.add_argument(
+        "--snapshot",
+        action="store_true",
+        help="Snapshot VM disks"
+    )
+    parser.add_argument(
+        "--backup",
+        action="store_true",
+        help="Backup VM disks to Azure Backup vault (development)"
+    )
 
     if len(sys.argv) == 1:
         parser.print_help()
