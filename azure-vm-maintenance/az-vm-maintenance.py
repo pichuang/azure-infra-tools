@@ -37,6 +37,8 @@ from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
 config = dotenv_values("0-az-vm-protect.env")
 VM_PROJECT_CSV = config['VM_PROJECT_CSV']
 VM_SNAPSHOT_POSTFIX = config['VM_SNAPSHOT_POSTFIX']
+
+VAULT_SUBSCRIPTION = config['VAULT_SUBSCRIPTION']
 VAULT_RESOURCE_GROUP_NAME = config['VAULT_RESOURCE_GROUP_NAME']
 VAULT_NAME = config['VAULT_NAME']
 VAULT_BACKUP_POLICY = config['VAULT_BACKUP_POLICY']
@@ -240,20 +242,72 @@ def snapshot_disk(subscription: str, resource_group: str, vm_name: str, disk_nam
     do_snapshot.wait()
     print(f"{f'Snapshot {snapshot_name} of disk {disk_name} of VM {vm_name} in resource group {resource_group} created':=^50s}")
 
-def backup_protection_check_vm(subscription: str, resource_group: str, vm_name: str) -> None:
+def backup_protection_check_vm(vault_subscription: str, vault_resource_group: str, vault_name: str, vm_name: str) -> bool:
+    """Check if the VM has backup protection enabled.
+
+    Args:
+        vault_subscription (str): The subscription ID of the backup vault.
+        vault_resource_group (str): The resource group name of the backup vault.
+        vault_name (str): The name of the backup vault.
+        vm_name (str): The name of the VM.
+
+    Returns:
+        bool: True if the VM has backup protection enabled, False otherwise.
     """
-    Check if the VM has backup protection enabled
+    try:
+        backup_client = RecoveryServicesBackupClient(
+            credential=credential,
+            subscription_id=vault_subscription
+        )
+        backup_items = backup_client.backup_protected_items.list(
+            resource_group_name=vault_resource_group,
+            vault_name=vault_name
+        )
 
-    Azure CLI command:
-    az backup protection check-vm \
-        --resource-group ${VM_RESOUCE_GROUP_NAME} \
-        --vm ${VM_NAME}
+        if not backup_items:
+            print(f"No backup vault found for {vault_name} in resource group {vault_resource_group}")
+            return False
+
+        for backup_item in backup_items:
+            backup_item_details = backup_item.name.split(';')
+            if vm_name == backup_item_details[3]:
+                return True
+        return False
+
+    except ResourceNotFoundError as e:
+        print(f"Resource not found: {e.message}")
+        sys.exit(1)
+
+def list_backup_vm_details(vm_data: pd.DataFrame) -> pd.DataFrame:
+    """List details of virtual machines from the provided DataFrame.
+
+    This function iterates over each row in the DataFrame, retrieves
+    the subscription ID, resource group, and VM name, and updates the
+    DataFrame with the OS disk, data disk, and location of each VM.
+
+    Args:
+        vm_data (pd.DataFrame): DataFrame containing VM details.
+
+    Returns:
+        pd.DataFrame: Updated DataFrame with additional VM details.
     """
 
+    for index in vm_data.index:
+        subscription_id = format_subscription_name(
+            vm_data.loc[index]['SubscriptionIdorName']
+        )
+        resource_group = vm_data.loc[index]['ResourceGroupName']
+        vm_name = vm_data.loc[index]['VMName']
 
-    pass
+        vm_data.loc[index, 'BackupProtection'] = backup_protection_check_vm(
+            subscription_id, VAULT_RESOURCE_GROUP_NAME, VAULT_NAME, vm_name
+        )
 
-def backup_protection_enable_vm(subscription: str, resource_group: str, vm_name: str) -> None:
+    return vm_data
+
+
+
+def backup_protection_enable_vm(vault_subscription: str, vault_resource_group: str, vault_name: str, vm_name: str) -> None:
     """
     Enable backup protection for a VM.
 
@@ -265,7 +319,6 @@ def backup_protection_enable_vm(subscription: str, resource_group: str, vm_name:
         --policy-name ${VAULT_BACKUP_POLICY} \
         --vm $(az vm show -g ${VM_RESOURCE_GROUP} -n ${VM_NAME} --query id | tr -d '"')
     """
-
 
     pass
 
@@ -290,9 +343,9 @@ def main() -> None:
         help="Snapshot VM disks"
     )
     parser.add_argument(
-        "--backup",
+        "--check-backup",
         action="store_true",
-        help="Backup VM disks to Azure Backup vault (development)"
+        help="Check if the VM has backup protection enabled"
     )
 
     if len(sys.argv) == 1:
@@ -361,8 +414,18 @@ def main() -> None:
                 data_disk = pd_data.loc[index]['DataDisk']
                 snapshot_disk(subscription_id, resource_group, vm_name, data_disk, location)
 
-    if args.backup:
-        return "Backup operation is not implemented yet."
+    if args.check_backup:
+
+        #
+        # Read CSV file
+        #
+        pd_data = read_csv_file(VM_PROJECT_CSV)
+
+        #
+        # List VM details
+        #
+        pd_data = list_backup_vm_details(pd_data)
+        print(pd_data)
 
 
 if __name__ == "__main__":
