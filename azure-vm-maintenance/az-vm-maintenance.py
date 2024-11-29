@@ -214,7 +214,7 @@ def snapshot_disk(subscription: str, resource_group: str, vm_name: str, disk_nam
     Returns:
         None
     """
-    snapshot_name = f"{vm_name}-{disk_name}-{VM_SNAPSHOT_POSTFIX}"
+    snapshot_name = f"{disk_name}-{VM_SNAPSHOT_POSTFIX}"
     print(f"{f'Create snapshot {snapshot_name} of disk {disk_name} of VM {vm_name} in resource group {resource_group}':=^50s}")
     az_client = ComputeManagementClient(
         credential=credential,
