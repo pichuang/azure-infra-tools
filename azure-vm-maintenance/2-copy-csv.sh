@@ -1,6 +1,7 @@
 #!/bin/bash
 
-FILENAME="1-vm-protect.example.csv"
+# if $1 is provided, use it as the filename
+FILENAME="${1:-1-vm-protect.example.csv}"
 UPLOAD_DIR="~/"
 REPLACE_DIR="~/azure-infra-tools/azure-vm-maintenance/"
 
