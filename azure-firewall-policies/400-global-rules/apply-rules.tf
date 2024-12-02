@@ -27,23 +27,20 @@ module "global_rule_collection_group" {
     rule = [
       {
         name                  = "Allow Any to Any ICMP"
-        source_addresses      = ["*"]
+        source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
+        source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
         destination_addresses = ["*"]
         destination_ports     = ["*"]
         protocols             = ["ICMP"]
       },
       {
-        name = "Allow Outside DNS"
-
-        #
-        # if source_addresses is empty, use source_ip_groups
-        #
+        name = "Allow Any to Azure Firewall DNS"
         source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
         source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
 
-        destination_addresses = ["168.95.1.1", "8.8.8.8"]
+        destination_addresses = ["10.100.2.132"]
         destination_ports     = ["53"]
-        protocols             = ["TCP", "UDP"] # ["Any" "TCP" "UDP" "ICMP"]
+        protocols             = ["UDP"] # ["Any" "TCP" "UDP" "ICMP"]
       },
     ]
     }
@@ -103,23 +100,7 @@ module "global_rule_collection_group" {
     priority = var.firewall_policy_rule_collection_allow_application_priority
     rule = [
       {
-        name = "Allow Windows"
-        source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
-        source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
-
-        destination_fqdn_tags = ["WindowsUpdate", "WindowsDiagnostics", "MicrosoftActiveProtectionService"]
-        protocols = [
-          {
-            port = 443
-            type = "Https"
-          }
-        ]
-      },
-      {
         name = "Allow ifconfig.me"
-        #
-        # if source_addresses is empty, use source_ip_groups
-        #
         source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
         source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
 

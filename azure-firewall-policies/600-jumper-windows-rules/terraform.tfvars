@@ -7,9 +7,9 @@ firewall_policy_id = "/subscriptions/0a4374d1-bc72-46f6-a4ae-a9d8401369db/resour
 #
 # Rule Collection Group
 #
-firewall_policy_rule_collection_group_name = "rcg-scratch-rules"
+firewall_policy_rule_collection_group_name = "rcg-jumper-windows-rules"
 # The number must be unique across all rule collection groups in the policy.
-firewall_policy_rule_collection_group_priority = 65000
+firewall_policy_rule_collection_group_priority = 600
 
 # Rule Collection - Allow DNAT
 firewall_policy_rule_collection_allow_dnat_name = "allow-dnat-rules"
@@ -25,8 +25,5 @@ firewall_policy_rule_collection_allow_application_priority = 600
 
 
 # Use one of the following variables
-source_addresses = []
-source_ip_groups = [
-    "/subscriptions/0a4374d1-bc72-46f6-a4ae-a9d8401369db/resourceGroups/rg-hub-er-taiwannorth/providers/Microsoft.Network/ipGroups/ipg-hub-twn",
-    "/subscriptions/0a4374d1-bc72-46f6-a4ae-a9d8401369db/resourceGroups/rg-hub-er-taiwannorth/providers/Microsoft.Network/ipGroups/ipg-zone1-twn"
-    ]
+source_addresses = ["10.100.4.132/32"]
+source_ip_groups = []

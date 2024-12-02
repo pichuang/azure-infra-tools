@@ -29,8 +29,5 @@ firewall_policy_rule_collection_allow_application_priority = 600
 
 
 # Use one of the following variables
-source_addresses = []
-source_ip_groups = [
-  "/subscriptions/0a4374d1-bc72-46f6-a4ae-a9d8401369db/resourceGroups/rg-hub-er-taiwannorth/providers/Microsoft.Network/ipGroups/ipg-hub-twn",
-  "/subscriptions/0a4374d1-bc72-46f6-a4ae-a9d8401369db/resourceGroups/rg-hub-er-taiwannorth/providers/Microsoft.Network/ipGroups/ipg-zone1-twn"
-]
+source_addresses = ["*"]
+source_ip_groups = []
