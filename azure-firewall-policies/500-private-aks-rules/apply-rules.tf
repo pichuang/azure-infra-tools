@@ -195,6 +195,26 @@ module "private_aks_rule_collection_group" {
           }
         ]
       },
+      {
+        name             = "Allow Container Registry"
+        source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
+        source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
+        destination_fqdns = [
+          # Specific ACR
+          "acraipprodtwn.azurecr.io",
+          "twn-acr-dp.azurecr.io",
+          "twnmanaged91.blob.core.windows.net",
+          # GHCR
+          "ghcr.io",
+          "pkg-containers.githubusercontent.com"
+        ]
+        protocols = [
+          {
+            port = 443
+            type = "Https"
+          }
+        ]
+      },
     ]
     }
   ]
