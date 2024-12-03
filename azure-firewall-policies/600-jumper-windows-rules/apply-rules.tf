@@ -48,7 +48,12 @@ module "global_rule_collection_group" {
         source_ip_groups  = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
 
         # Can install WSL 2 on Windows
-        destination_fqdn_tags = ["WindowsUpdate", "WindowsDiagnostics", "MicrosoftActiveProtectionService"]
+        # https://learn.microsoft.com/en-us/azure/firewall/fqdn-tags
+        destination_fqdn_tags = [
+          "WindowsUpdate",
+          "WindowsDiagnostics",
+          "MicrosoftActiveProtectionService"
+        ]
         protocols = [
           {
             port = 443
