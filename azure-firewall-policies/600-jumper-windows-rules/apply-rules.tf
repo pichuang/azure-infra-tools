@@ -92,8 +92,37 @@ module "global_rule_collection_group" {
         source_ip_groups  = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
 
         destination_fqdns = [
+          # Its enough to allow download k9s from github.com
           "github.com",
           "*.githubusercontent.com"
+        ]
+        protocols         = [
+          {
+            port = 443
+            type = "Https"
+          }
+        ]
+      },
+      {
+        name = "Allow Private Azure Managed Grafana"
+        source_addresses  = length(var.source_addresses) > 0 ? var.source_addresses : null
+        source_ip_groups  = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
+
+        destination_fqdns = [
+          # AAD Login
+          "login.microsoftonline.com",
+          "login.microsoft.com",
+          "browser.events.data.microsoft.com",
+          "aadcdn.msauth.net",
+          "aadcdn.msftauth.net",
+          "aadcdn.msauthimages.net",
+          "aadcdn.msftauthimages.net",
+          "logincdn.msftauth.net",
+          "lgincdnvzeuno.azureedge.net",
+          "lgincdnmsftuswe2.azureedge.net",
+          "autologon.microsoftazuread-sso.com",
+          # Grafana
+          "*.grafana.azure.com",
         ]
         protocols         = [
           {
