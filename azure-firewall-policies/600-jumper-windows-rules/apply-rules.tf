@@ -161,6 +161,7 @@ module "global_rule_collection_group" {
         destination_fqdns = [
           "aka.ms",
           "*.aka.ms",
+          "learn.microsoft.com",
         ]
         protocols = [
           {
@@ -177,6 +178,22 @@ module "global_rule_collection_group" {
         destination_fqdns = [
           # Need to Allow Azure Active Directory
           "*.grafana.azure.com",
+        ]
+        protocols = [
+          {
+            port = 443
+            type = "Https"
+          }
+        ]
+      },
+      {
+        name             = "Allow Log Analytics Portal"
+        source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
+        source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
+
+        destination_fqdns = [
+          # Need to Allow Azure Active Directory
+          "portal.loganalytics.io",
         ]
         protocols = [
           {
