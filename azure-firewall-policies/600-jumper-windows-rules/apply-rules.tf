@@ -104,6 +104,7 @@ module "global_rule_collection_group" {
         ]
       },
       {
+        #WIP
         name = "Allow Private Azure Managed Grafana"
         source_addresses  = length(var.source_addresses) > 0 ? var.source_addresses : null
         source_ip_groups  = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
