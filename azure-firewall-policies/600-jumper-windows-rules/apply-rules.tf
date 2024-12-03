@@ -107,19 +107,60 @@ module "global_rule_collection_group" {
         source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
         source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
 
+        # https://learn.microsoft.com/zh-tw/azure/azure-portal/azure-portal-safelist-urls?tabs=public-cloud#azure-portal-urls-for-proxy-bypass
         destination_fqdns = [
-          # AAD Login
           "login.microsoftonline.com",
-          "login.microsoft.com",
-          "browser.events.data.microsoft.com",
-          "aadcdn.msauth.net",
-          "aadcdn.msftauth.net",
-          "aadcdn.msauthimages.net",
-          "aadcdn.msftauthimages.net",
-          "logincdn.msftauth.net",
-          "lgincdnvzeuno.azureedge.net",
-          "lgincdnmsftuswe2.azureedge.net",
-          "autologon.microsoftazuread-sso.com",
+          "*.aadcdn.msftauth.net",
+          "*.aadcdn.msftauthimages.net",
+          "*.aadcdn.msauthimages.net",
+          "*.logincdn.msftauth.net",
+          "login.live.com",
+          "*.msauth.net",
+          "*.aadcdn.microsoftonline-p.com",
+          "*.microsoftonline-p.com",
+        ]
+        protocols = [
+          {
+            port = 443
+            type = "Https"
+          }
+        ]
+      },
+      {
+        name             = "Allow Azure Portal"
+        source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
+        source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
+
+        # https://learn.microsoft.com/zh-tw/azure/azure-portal/azure-portal-safelist-urls?tabs=public-cloud#azure-portal-urls-for-proxy-bypass
+        destination_fqdns = [
+          "portal.azure.com",
+          "hosting.portal.azure.net",
+          "hosting-ms.portal.azure.net",
+          "hosting.partners.azure.net",
+          "reactblade.portal.azure.net",
+          "ms.hosting.portal.azure.net",
+          "*.hosting.portal.azure.net",
+          "management.azure.com",
+          "*.ext.azure.com",
+          "*.graph.windows.net",
+          "*.graph.microsoft.com",
+        ]
+        protocols = [
+          {
+            port = 443
+            type = "Https"
+          }
+        ]
+      },
+      {
+        name             = "Allow Microsoft Docs"
+        source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
+        source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
+
+        # https://learn.microsoft.com/zh-tw/azure/azure-portal/azure-portal-safelist-urls?tabs=public-cloud#azure-portal-urls-for-proxy-bypass
+        destination_fqdns = [
+          "aka.ms",
+          "*.aka.ms",
         ]
         protocols = [
           {
@@ -145,18 +186,14 @@ module "global_rule_collection_group" {
         ]
       },
       {
-        name             = "Allow Azure Portal"
+        name             = "Allow Azure Cloud Shell"
         source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
         source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
 
         destination_fqdns = [
-          # Need to Allow Azure Active Directory
-          "portal.azure.com",
-          "afd-v2.hosting.portal.azure.net",
-          "management.azure.com",
           # Cloud Shell
           "ux.console.azure.com",
-          "ccon-prod-southeastasia-aci-09.servicebus.windows.net", # Depends on Region, better to allow *.servicebus.windows.net
+          "*.servicebus.windows.net",
           # Serial Console
           "compute.hosting.portal.azure.net",
           "portal.serialconsole.azure.com",
