@@ -47,7 +47,6 @@ module "global_rule_collection_group" {
         source_addresses  = length(var.source_addresses) > 0 ? var.source_addresses : null
         source_ip_groups  = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
 
-        # Can install WSL 2 on Windows
         # https://learn.microsoft.com/en-us/azure/firewall/fqdn-tags
         destination_fqdn_tags = [
           "WindowsUpdate",
@@ -104,8 +103,7 @@ module "global_rule_collection_group" {
         ]
       },
       {
-        #WIP
-        name = "Allow Private Azure Managed Grafana"
+        name = "Allow Azure Active Directory"
         source_addresses  = length(var.source_addresses) > 0 ? var.source_addresses : null
         source_ip_groups  = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
 
@@ -122,8 +120,48 @@ module "global_rule_collection_group" {
           "lgincdnvzeuno.azureedge.net",
           "lgincdnmsftuswe2.azureedge.net",
           "autologon.microsoftazuread-sso.com",
-          # Grafana
+        ]
+        protocols         = [
+          {
+            port = 443
+            type = "Https"
+          }
+        ]
+      },
+      {
+        name = "Allow Private Azure Managed Grafana"
+        source_addresses  = length(var.source_addresses) > 0 ? var.source_addresses : null
+        source_ip_groups  = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
+
+        destination_fqdns = [
+          # Need to Allow Azure Active Directory
           "*.grafana.azure.com",
+        ]
+        protocols         = [
+          {
+            port = 443
+            type = "Https"
+          }
+        ]
+      },
+      {
+        name = "Allow Azure Portal"
+        source_addresses  = length(var.source_addresses) > 0 ? var.source_addresses : null
+        source_ip_groups  = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
+
+        destination_fqdns = [
+          # Need to Allow Azure Active Directory
+          "portal.azure.com",
+          "afd-v2.hosting.portal.azure.net",
+          "management.azure.com",
+          # Cloud Shell
+          "ux.console.azure.com",
+          "ccon-prod-southeastasia-aci-09.servicebus.windows.net", # Depends on Region, better to allow *.servicebus.windows.net
+          # Serial Console
+          "compute.hosting.portal.azure.net",
+          "portal.serialconsole.azure.com",
+          # TODO
+          # Boot diagnostics / Log Analytics
         ]
         protocols         = [
           {
