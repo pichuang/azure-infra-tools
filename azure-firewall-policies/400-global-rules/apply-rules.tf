@@ -27,14 +27,14 @@ module "global_rule_collection_group" {
     rule = [
       {
         name                  = "Allow Any to Any ICMP"
-        source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
-        source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
+        source_addresses      = length(var.source_addresses) > 0 ? var.source_addresses : null
+        source_ip_groups      = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
         destination_addresses = ["*"]
         destination_ports     = ["*"]
         protocols             = ["ICMP"]
       },
       {
-        name = "Allow Any to Azure Firewall DNS"
+        name             = "Allow Any to Azure Firewall DNS"
         source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
         source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
 
@@ -53,7 +53,7 @@ module "global_rule_collection_group" {
       priority = var.firewall_policy_rule_collection_deny_application_priority
       rule = [
         {
-          name = "Deny All Liability Websites"
+          name             = "Deny All Liability Websites"
           source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
           source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
 
@@ -95,28 +95,28 @@ module "global_rule_collection_group" {
       ]
     },
     {
-    action   = "Allow"
-    name     = var.firewall_policy_rule_collection_allow_application_name
-    priority = var.firewall_policy_rule_collection_allow_application_priority
-    rule = [
-      {
-        name = "Allow ifconfig.me"
-        source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
-        source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
+      action   = "Allow"
+      name     = var.firewall_policy_rule_collection_allow_application_name
+      priority = var.firewall_policy_rule_collection_allow_application_priority
+      rule = [
+        {
+          name             = "Allow ifconfig.me"
+          source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
+          source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
 
-        destination_fqdns = ["ifconfig.me"]
-        protocols = [
-          {
-            port = 80
-            type = "Http"
-          },
-          {
-            port = 443
-            type = "Https"
-          }
-        ]
-      }
-    ]
+          destination_fqdns = ["ifconfig.me"]
+          protocols = [
+            {
+              port = 80
+              type = "Http"
+            },
+            {
+              port = 443
+              type = "Https"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

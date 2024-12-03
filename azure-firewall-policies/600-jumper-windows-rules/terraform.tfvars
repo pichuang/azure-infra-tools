@@ -12,15 +12,15 @@ firewall_policy_rule_collection_group_name = "rcg-jumper-windows-rules"
 firewall_policy_rule_collection_group_priority = 600
 
 # Rule Collection - Allow DNAT
-firewall_policy_rule_collection_allow_dnat_name = "allow-dnat-rules"
+firewall_policy_rule_collection_allow_dnat_name     = "allow-dnat-rules"
 firewall_policy_rule_collection_allow_dnat_priority = 200
 
 # Rule Collection - Allow Network
-firewall_policy_rule_collection_allow_network_name = "allow-network-rules"
+firewall_policy_rule_collection_allow_network_name     = "allow-network-rules"
 firewall_policy_rule_collection_allow_network_priority = 400
 
 # Rule Collection - Allow Application
-firewall_policy_rule_collection_allow_application_name = "allow-application-rules"
+firewall_policy_rule_collection_allow_application_name     = "allow-application-rules"
 firewall_policy_rule_collection_allow_application_priority = 600
 
 
