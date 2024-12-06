@@ -3,9 +3,14 @@
 ## Add a Binary (or Executable, or Program) to PATH on Windows
 
 ```powershell
-mkdir C:\bin
-setx PATH "C:\bin;%PATH%"
+mkdir C:\k8s-tools
+setx PATH "C:\k8s-tools;%PATH%"
 where.exe kubectl.exe
+```
+
+## Mkdir kubeconfig
+```
+mkdir $HOME\.kube
 ```
 
 ## Download the Binary
