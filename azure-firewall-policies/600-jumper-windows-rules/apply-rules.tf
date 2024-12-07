@@ -162,6 +162,7 @@ module "global_rule_collection_group" {
           "aka.ms",
           "*.aka.ms",
           "learn.microsoft.com",
+          "go.microsoft.com"
         ]
         protocols = [
           {
@@ -216,6 +217,30 @@ module "global_rule_collection_group" {
           "portal.serialconsole.azure.com",
           # TODO
           # Boot diagnostics / Log Analytics
+        ]
+        protocols = [
+          {
+            port = 443
+            type = "Https"
+          }
+        ]
+      },
+      {
+        name             = "Allow VScode"
+        source_addresses = length(var.source_addresses) > 0 ? var.source_addresses : null
+        source_ip_groups = length(var.source_addresses) == 0 && length(var.source_ip_groups) > 0 ? var.source_ip_groups : null
+
+        destination_fqdns = [
+          "code.visualstudio.com",
+          "vscode.download.prss.microsoft.com",
+          "*.code.visualstudio.com",
+          "vscode.blob.core.windows.net",
+          "vscode-sync.trafficmanager.net",
+          "vscode-sync-insiders.trafficmanager.net",
+          "marketplace.visualstudio.com",
+          "*.vscode-unpkg.net",
+          "ms-azuretools.gallery.vsassets.io",
+          "ms-azuretools.gallerycdn.vsassets.io",
         ]
         protocols = [
           {
