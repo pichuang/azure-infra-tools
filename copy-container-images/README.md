@@ -2,7 +2,7 @@
 
 A utility script for copying container images from a source registry to a destination registry while preserving the original path structure.
 
-![](/imgs/screenshot.png)
+![](./imgs/screenshot.png)
 
 ## Features
 
