@@ -1,0 +1,53 @@
+# Studio
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/studio:3.0
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/studio:3.1
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/studio:latest
+
+# Read
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/read-3.0:latest
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/read-3.1:latest
+
+# Layout
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/layout-3.0:latest
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/layout-3.1:latest
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/layout-4.0:2024-11-30
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/layout-4.0:latest
+
+# Document
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/document-3.0:latest
+
+# Invoice
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/invoice-3.0:2022-08-31
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/invoice-3.0:latest
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/invoice-3.1:2023-07-31
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/invoice-3.1:latest
+
+# Receipt
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/receipt-3.0:latest
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/receipt-3.1:latest
+
+# ID Document
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/id-document-3.0:latest
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/id-document-3.1:latest
+
+# Business Card
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/businesscard-3.0:latest
+
+# Custom Template
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/custom-template-3.0:latest
+mcr.microsoft.com/azure-cognitive-services/form-recognizer/custom-template-3.1:latest
+
+# Text Analytics Language
+mcr.microsoft.com/azure-cognitive-services/textanalytics/language:latest
+
+# Computer Vision Read OCR
+mcr.microsoft.com/azure-cognitive-services/vision/read:latest
+
+# Text Translator
+mcr.microsoft.com/azure-cognitive-services/translator/text-translation:latest
+
+# Azure Linux Nginx
+mcr.microsoft.com/azurelinux/base/nginx:1.25
+
+# Nginx
+docker.io/library/nginx:1.27.4-alpine
