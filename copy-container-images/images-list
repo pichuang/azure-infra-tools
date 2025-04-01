@@ -51,3 +51,11 @@ mcr.microsoft.com/azurelinux/base/nginx:1.25
 
 # Nginx
 docker.io/library/nginx:1.27.4-alpine
+
+# Red Hat
+registry.access.redhat.com/ubi8/ubi:latest
+registry.access.redhat.com/ubi8/ubi-init:latest
+registry.access.redhat.com/ubi8/ubi-minimal:latest
+registry.access.redhat.com/ubi9/ubi:latest
+registry.access.redhat.com/ubi9/ubi-init:latest
+registry.access.redhat.com/ubi9/ubi-minimal:latest
