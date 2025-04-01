@@ -2,6 +2,8 @@
 
 This script facilitates importing container images from other container registries into Azure Container Registry.
 
+![image](./imgs/screenshot.png)
+
 ## Features
 
 - Import images from a source container registry to Azure Container Registry
