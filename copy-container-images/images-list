@@ -49,6 +49,12 @@ mcr.microsoft.com/azure-cognitive-services/translator/text-translation:latest
 # Azure Linux Nginx
 mcr.microsoft.com/azurelinux/base/nginx:1.25
 
+# Text Translator
+mcr.microsoft.com/azure-cognitive-services/translator/text-translation
+
+# Diagnostic
+mcr.microsoft.com/azure-cognitive-services/diagnostic
+
 # Red Hat
 registry.access.redhat.com/ubi8/ubi:latest
 registry.access.redhat.com/ubi8/ubi-init:latest
