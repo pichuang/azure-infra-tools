@@ -58,6 +58,9 @@ Installed:
 
 Complete!
 
+[root@vm-rhlel9-twn ~]# yum clean all --installroot $micromount
+26 files removed
+
 [root@vm-rhlel9-twn ~]# buildah umount ${microcontainer}
 f47cb9a5a68457c983bdcf205c895885872b1ddb8fde12741a4c1cb67518fa68
 
