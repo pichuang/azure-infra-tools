@@ -1,3 +1,4 @@
+```
 [root@vm-rhlel9-twn ~]# buildah images
 REPOSITORY   TAG   IMAGE ID   CREATED   SIZE
 
@@ -79,3 +80,4 @@ registry.access.redhat.com/ubi9/ubi-micro   latest   c3ce3344581e   26 hours ago
 
 [root@vm-rhlel9-twn ~]# podman run --rm -it localhost/mtr-ubi9-micro mtr --version
 mtr 0.94
+```
