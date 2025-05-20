@@ -3,18 +3,19 @@
 
 import argparse
 import time
-from azure.identity import DefaultAzureCredential
-from azure.mgmt.compute import ComputeManagementClient
-from azure.mgmt.network import NetworkManagementClient
-from azure.mgmt.resource import ResourceManagementClient, SubscriptionClient
-from azure.mgmt.network.models import NetworkSecurityGroup, SecurityRule
-import sys
-import paramiko
 import re
 import logging
 import subprocess
 import json
 import os
+import sys
+import paramiko
+
+from azure.identity import DefaultAzureCredential
+from azure.mgmt.compute import ComputeManagementClient
+from azure.mgmt.network import NetworkManagementClient
+from azure.mgmt.resource import ResourceManagementClient, SubscriptionClient
+from azure.mgmt.network.models import NetworkSecurityGroup, SecurityRule
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 logging.getLogger('azure').setLevel(logging.WARNING)
@@ -33,7 +34,7 @@ def create_resource_group(resource_client, resource_group_name, location):
     """
     resource_group_params = {'location': location}
     resource_client.resource_groups.create_or_update(resource_group_name, resource_group_params)
-    logging.info(f"Resource group {resource_group_name} has been created.")
+    logging.info("Resource group %s has been 建立.", resource_group_name)
 
 def create_virtual_network(network_client, resource_group_name, vnet_name, subnet_name, network_cidr, location):
     """
@@ -54,7 +55,7 @@ def create_virtual_network(network_client, resource_group_name, vnet_name, subne
         }
     }
     network_client.virtual_networks.begin_create_or_update(resource_group_name, vnet_name, vnet_params).result()
-    logging.info(f"VNet {vnet_name} has been created.")
+    logging.info("VNet %s has been 建立.", vnet_name)
 
     subnet_info = network_client.subnets.begin_create_or_update(
         resource_group_name,
@@ -64,7 +65,7 @@ def create_virtual_network(network_client, resource_group_name, vnet_name, subne
             'address_prefix': network_cidr
         }
     ).result()
-    logging.info(f"Subnet {subnet_name} has been created.")
+    logging.info("Subnet %s has been 建立.", subnet_name)
 
 def create_network_security_group(network_client, resource_group_name, nsg_name, location):
     """
@@ -162,7 +163,7 @@ def create_network_security_group(network_client, resource_group_name, nsg_name,
 
     nsg_params = NetworkSecurityGroup(location=location, security_rules=[ssh_rule, iperf3_rule, icmp_rule, asn_rule, sockperf_rule,two_ping_rule, outbound_rule])
     network_client.network_security_groups.begin_create_or_update(resource_group_name, nsg_name, nsg_params).result()
-    logging.info(f"Network security group {nsg_name} has been created.")
+    logging.info("Network security group %s has been 建立.", nsg_name)
 
 def create_vm_without_progress(compute_client, network_client, resource_client, resource_group_name, vm_name, location, vm_type, username, password, nsg_name, vnet_name, subnet_name, zone, enable_accelerated_networking):
     """
@@ -232,7 +233,7 @@ def create_vm_without_progress(compute_client, network_client, resource_client, 
         'zones': [zone]
     }
     compute_client.virtual_machines.begin_create_or_update(resource_group_name, vm_name, vm_params).result()
-    logging.info(f"VM {vm_name} has been created.")
+    logging.info("VM %s has been 建立.", vm_name)
     return public_ip.ip_address
 
 def get_public_ip_address(network_client, resource_group_name, vm_name):
@@ -284,7 +285,7 @@ def create_ssh_client(ip_address, username, password, skip_setup=False):
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(ip_address, username=username, password=password)
-        logging.debug(f"SSH connection established with {ip_address}")
+        logging.debug("SSH connection established with %s", ip_address)
 
         if not skip_setup:
             # Check if the repository is already cloned and iperf3 is running
@@ -308,7 +309,7 @@ def create_ssh_client(ip_address, username, password, skip_setup=False):
 
         return client
     except Exception as e:
-        logging.error(f"Failed to create SSH connection to {ip_address}: {e}")
+        logging.error("Failed to create SSH connection to %s: %s", ip_address, e)
         return None
 
 def run_bandwidth_test(client, vm_name, target_vm_name, target_ip, is_public=True):
