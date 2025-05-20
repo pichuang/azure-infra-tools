@@ -1,7 +1,7 @@
 $subscriptionIdorName = "subscription-vendor"
-$location = "southeastasia"
-$resourceGroup = "rg-networkwatcher-aruba-sea"
-$workspaceName = "log-networkwatcher-aruba-sea"
+$location = "japaneast"
+$resourceGroup = "rg-networkwatcher-aruba-jpe"
+$workspaceName = "log-networkwatcher-aruba-jpe"
 
 Select-AzSubscription -SubscriptionId $subscriptionIdorName
 
