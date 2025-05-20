@@ -6,7 +6,7 @@ services:
         - EULA=accept
         - billing=https://aisvc-pichuang.cognitiveservices.azure.com/
         - apiKey=null
-        - Languages=en,zh-Hant
+        - Languages=en,zh-Hant,zh-Hans,ja,id,es,fr,ru,en,th,fil,vi,it,pt,de,ko,tr,da,he,fa,ar,ms
         - ladurl=http://azure-ai-language:5000
         - VISIONURL=http://azure-ai-read:5000
     ports:
