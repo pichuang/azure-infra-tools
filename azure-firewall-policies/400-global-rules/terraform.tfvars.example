@@ -1,0 +1,32 @@
+subscription_id = "00000000-0000-0000-0000-000000000000"
+
+# Firewall Policy
+firewall_policy_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-hub-er-region/providers/Microsoft.Network/firewallPolicies/afwp-hub-region"
+
+#
+# Rule Collection Group
+#
+firewall_policy_rule_collection_group_name = "rcg-global-rules"
+# The number must be unique across all rule collection groups in the policy.
+firewall_policy_rule_collection_group_priority = 400
+
+# Rule Collection - Allow DNAT
+firewall_policy_rule_collection_allow_dnat_name     = "allow-dnat-rules"
+firewall_policy_rule_collection_allow_dnat_priority = 200
+
+# Rule Collection - Allow Network
+firewall_policy_rule_collection_allow_network_name     = "allow-network-rules"
+firewall_policy_rule_collection_allow_network_priority = 400
+
+# Rule Collection - Deny Application
+firewall_policy_rule_collection_deny_application_name     = "deny-application-rules"
+firewall_policy_rule_collection_deny_application_priority = 500
+
+# Rule Collection - Allow Application
+firewall_policy_rule_collection_allow_application_name     = "allow-application-rules"
+firewall_policy_rule_collection_allow_application_priority = 600
+
+# Use one of the following variables
+# For production use, avoid using "*" for source_addresses
+source_addresses = ["10.0.0.0/8"]  # More secure than using "*"
+source_ip_groups = []

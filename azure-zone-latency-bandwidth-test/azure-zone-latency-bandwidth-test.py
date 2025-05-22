@@ -79,7 +79,7 @@ def create_network_security_group(network_client, resource_group_name, nsg_name,
     """
     ssh_rule = SecurityRule(
         protocol='Tcp',
-        source_address_prefix='*',
+        source_address_prefix=args.my_ip if hasattr(args, 'my_ip') and args.my_ip else '0.0.0.0/0',
         destination_address_prefix='*',
         access='Allow',
         direction='Inbound',
@@ -91,7 +91,7 @@ def create_network_security_group(network_client, resource_group_name, nsg_name,
 
     iperf3_rule = SecurityRule(
         protocol='Tcp',
-        source_address_prefix='*',
+        source_address_prefix='VirtualNetwork',
         destination_address_prefix='*',
         access='Allow',
         direction='Inbound',
@@ -103,7 +103,7 @@ def create_network_security_group(network_client, resource_group_name, nsg_name,
 
     sockperf_rule = SecurityRule(
         protocol='Tcp',
-        source_address_prefix='*',
+        source_address_prefix='VirtualNetwork',
         destination_address_prefix='*',
         access='Allow',
         direction='Inbound',
@@ -115,7 +115,7 @@ def create_network_security_group(network_client, resource_group_name, nsg_name,
 
     two_ping_rule = SecurityRule(
         protocol='Tcp',
-        source_address_prefix='*',
+        source_address_prefix='VirtualNetwork',
         destination_address_prefix='*',
         access='Allow',
         direction='Inbound',
@@ -127,7 +127,7 @@ def create_network_security_group(network_client, resource_group_name, nsg_name,
 
     asn_rule = SecurityRule(
         protocol='Tcp',
-        source_address_prefix='*',
+        source_address_prefix='VirtualNetwork',
         destination_address_prefix='*',
         access='Allow',
         direction='Inbound',
@@ -139,7 +139,7 @@ def create_network_security_group(network_client, resource_group_name, nsg_name,
 
     icmp_rule = SecurityRule(
         protocol='Icmp',
-        source_address_prefix='*',
+        source_address_prefix='VirtualNetwork',
         destination_address_prefix='*',
         access='Allow',
         direction='Inbound',
@@ -152,13 +152,13 @@ def create_network_security_group(network_client, resource_group_name, nsg_name,
     outbound_rule = SecurityRule(
         protocol='*',
         source_address_prefix='*',
-        destination_address_prefix='*',
+        destination_address_prefix='Internet',
         access='Allow',
         direction='Outbound',
         source_port_range='*',
         destination_port_range='*',
         priority=130,
-        name='outbound-any-any'
+        name='outbound-internet'
     )
 
     nsg_params = NetworkSecurityGroup(location=location, security_rules=[ssh_rule, iperf3_rule, icmp_rule, asn_rule, sockperf_rule,two_ping_rule, outbound_rule])
@@ -283,8 +283,11 @@ def create_ssh_client(ip_address, username, password, skip_setup=False):
     """
     try:
         client = paramiko.SSHClient()
+        # Security note: In a production environment, consider using system host keys
+        # or another secure way to verify host identity instead of AutoAddPolicy
+        logging.warning("Using AutoAddPolicy for host key verification - this is insecure for production environments")
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(ip_address, username=username, password=password)
+        client.connect(ip_address, username=username, ****** timeout=30)
         logging.debug("SSH connection established with %s", ip_address)
 
         if not skip_setup:
@@ -562,8 +565,10 @@ def show_vm_info(network_client, resource_group_name, vm_names, username, passwo
     """
     for vm_name in vm_names:
         ip_address = get_public_ip_address(network_client, resource_group_name, vm_name)
-        logging.info(f"VM Name: {vm_name}, IP: {ip_address}, Username: {username}, Password: {password}")
-        logging.info(f"To login {vm_name} with one command: expect -c 'spawn ssh {username}@{ip_address}; expect \"password:\"; send \"{password}\\r\"; interact'")
+        logging.info(f"VM Name: {vm_name}, IP: {ip_address}, Username: {username}")
+        # Use a more secure way to suggest SSH access
+        logging.info(f"To login to {vm_name}: ssh {username}@{ip_address}")
+        logging.info("For secure SSH access, consider using SSH keys instead of passwords.")
 
 def get_tenant_id_by_name(credential, tenant_name):
     """
@@ -635,9 +640,10 @@ def main():
     parser.add_argument('--vm-type', required=False, default='Standard_D8lds_v5', help='VM Type e.x Standard_D2s_v5 / Standard_D8lds_v5')
     parser.add_argument('--location', required=False, default='southeastasia', help='Azure Region')
     parser.add_argument('--enable-accelerated-networking', required=False, type=bool, default=True, help='Enable Accelerated Networking (default: True)')
-    parser.add_argument('--admin-username', required=False, default='repairman', help='Admin username for the VM (default: repairman)')
-    parser.add_argument('--admin-password', required=False, default='f5Q7tjAa2XheJE8NqDRnMP', help='Admin password for the VM (default: f5Q7tjAa2XheJE8NqDRnMP)')
+    parser.add_argument('--admin-username', required=False, help='Admin username for the VM')
+    parser.add_argument('--admin-password', required=False, help='Admin password for the VM')
     parser.add_argument('--network-cidr', required=False, default='192.168.100.0/24', help='Network CIDR (default: 192.168.100.0/24)')
+    parser.add_argument('--my-ip', required=False, help='Your public IP address for SSH access (format: x.x.x.x/32). If not provided, allows all IPs (not recommended for production).')
     parser.add_argument('--force-delete', required=False, action='store_true', help='Force delete the resource group')
     parser.add_argument('--run', required=False, action='store_true', help='Run latency and bandwidth tests directly')
     parser.add_argument('--show-info', required=False, action='store_true', help='Show VM info (IP, username, password)')
