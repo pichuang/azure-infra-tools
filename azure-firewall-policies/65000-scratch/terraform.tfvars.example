@@ -1,0 +1,30 @@
+subscription_id = "00000000-0000-0000-0000-000000000000"
+
+# Firewall Policy
+firewall_policy_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-hub-er-region/providers/Microsoft.Network/firewallPolicies/afwp-hub-region"
+
+#
+# Rule Collection Group
+#
+firewall_policy_rule_collection_group_name = "rcg-scratch-rules"
+# The number must be unique across all rule collection groups in the policy.
+firewall_policy_rule_collection_group_priority = 65000
+
+# Rule Collection - Allow DNAT
+firewall_policy_rule_collection_allow_dnat_name     = "allow-dnat-rules"
+firewall_policy_rule_collection_allow_dnat_priority = 200
+
+# Rule Collection - Allow Network
+firewall_policy_rule_collection_allow_network_name     = "allow-network-rules"
+firewall_policy_rule_collection_allow_network_priority = 400
+
+# Rule Collection - Allow Application
+firewall_policy_rule_collection_allow_application_name     = "allow-application-rules"
+firewall_policy_rule_collection_allow_application_priority = 600
+
+# Use one of the following variables
+source_addresses = []
+source_ip_groups = [
+  "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-hub-er-region/providers/Microsoft.Network/ipGroups/ipg-hub-region",
+  "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-hub-er-region/providers/Microsoft.Network/ipGroups/ipg-zone1-region"
+]
