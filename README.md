@@ -10,6 +10,7 @@
 - [Azure 防火牆規則原理圖](./azure-firewall-policies/500-private-aks-rules/README.md)：管理與套用 Azure Firewall Policy，含多種場景原理圖與範例。
 - [Azure Container Image 匯入工具](./copy-container-images/README.md)：自動化將外部 container image 匯入 Azure Container Registry。
 - [Network Watcher 工具](./network-watcher/README.md)：網路診斷、流量監控與拓撲視覺化。
+- [Azure Public DNS Transfer Out]：獲得 authCode
 
 ## 目錄結構
 
@@ -19,6 +20,7 @@
 - `azure-firewall-policies/`：防火牆規則原理圖與範例
 - `copy-container-images/`：Container image 匯入腳本
 - `network-watcher/`：網路監控與診斷
+- `azure-public-dns-transfer-out/`: Azure DNS 轉出, 獲得 authCode
 - `dev/`：開發中或實驗性工具
 
 ## 安裝需求
