@@ -15,6 +15,9 @@ if (-not $subscriptionIdorName) {
     exit
 }
 
+# Register the required resource providers
+Register-AzResourceProvider -ProviderNamespace Microsoft.OperationsManagement
+
 # Create resource group if not existing
 $rg = Get-AzResourceGroup -Name $resourceGroup -ErrorAction SilentlyContinue
 if (-not $rg) {
