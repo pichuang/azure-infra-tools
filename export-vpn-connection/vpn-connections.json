@@ -1,0 +1,33 @@
+[
+  {
+    "connectionMode": "Default",
+    "connectionProtocol": "IKEv2",
+    "connectionType": "IPsec",
+    "egressBytesTransferred": 0,
+    "enableBgp": false,
+    "etag": "W/\"69c7828f-211d-4dbc-b4b5-4fa394fcc75e\"",
+    "expressRouteGatewayBypass": false,
+    "gatewayCustomBgpIpAddresses": [],
+    "id": "/subscriptions/0a4374d1-bc72-46f6-a4ae-a9d8401369db/resourceGroups/rg-tf-hub-twn/providers/Microsoft.Network/connections/conn-tf-twn",
+    "ingressBytesTransferred": 0,
+    "ipsecPolicies": [],
+    "localNetworkGateway2": {
+      "id": "/subscriptions/0a4374d1-bc72-46f6-a4ae-a9d8401369db/resourceGroups/rg-tf-hub-twn/providers/Microsoft.Network/localNetworkGateways/lng-tf-onprem",
+      "resourceGroup": "rg-tf-hub-twn"
+    },
+    "location": "taiwannorth",
+    "name": "conn-tf-twn",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "rg-tf-hub-twn",
+    "resourceGuid": "904c7abb-860e-4b08-bf8e-c745ee69e749",
+    "routingWeight": 0,
+    "tags": {},
+    "trafficSelectorPolicies": [],
+    "type": "Microsoft.Network/connections",
+    "usePolicyBasedTrafficSelectors": false,
+    "virtualNetworkGateway1": {
+      "id": "/subscriptions/0a4374d1-bc72-46f6-a4ae-a9d8401369db/resourceGroups/rg-tf-hub-twn/providers/Microsoft.Network/virtualNetworkGateways/vpn-tf-twn",
+      "resourceGroup": "rg-tf-hub-twn"
+    }
+  }
+]
