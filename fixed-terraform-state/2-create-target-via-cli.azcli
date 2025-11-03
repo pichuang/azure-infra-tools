@@ -1,0 +1,3 @@
+#!/bin/bash
+
+az group create --name rg-practice-terraform-state --location southeastasia

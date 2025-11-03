@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+az group delete --name rg-practice-terraform-state --yes --no-wait
