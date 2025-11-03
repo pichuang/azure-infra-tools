@@ -88,6 +88,8 @@ Terraform 狀態檔案 (`terraform.tfstate`) 記錄了 Terraform 所管理的基
 
 ### 步驟 3:嘗試匯入 - 失敗示範 (`3-import-state-to-tf.sh`)
 
+![](./imgs/tf-state-error.png)
+
 ```bash
 ./3-import-state-to-tf.sh
 ```
@@ -108,6 +110,8 @@ Terraform 狀態檔案 (`terraform.tfstate`) 記錄了 Terraform 所管理的基
 ---
 
 ### 步驟 4:正確的修復流程 (`4-fix-it.sh`)
+
+![](./imgs/fixed-tf.png)
 
 ```bash
 ./4-fix-it.sh
@@ -271,10 +275,6 @@ terraform {
 ```bash
 terraform plan -detailed-exitcode
 ```
-
-### 6. 使用 Terraform Cloud 或 Terraform Enterprise
-
-考慮使用託管服務來管理狀態檔案,提供更好的協作和安全性。
 
 ---
 
