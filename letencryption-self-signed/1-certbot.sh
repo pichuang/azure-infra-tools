@@ -11,6 +11,7 @@ done
 
 certbot certonly --manual \
     --preferred-challenges dns \
+    --key-type rsa \
     --config-dir ./certbot-config \
     --logs-dir ./certbot-logs \
     --work-dir ./certbot-work \

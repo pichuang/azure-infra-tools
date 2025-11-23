@@ -5,7 +5,9 @@
 - Can not use CNAME
 - DNS-01 is better than HTTP-01
 
-## Output
+## Walkthrough
+
+### Certbot Output
 
 ```bash
 # pichuang @ fly-by-cyber in ~/ms-workspace/azure-infra-tools/letencryption-self-signed on git:main x [16:47:02]
@@ -65,3 +67,10 @@ If you like Certbot, please consider supporting our work by:
  * Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
  * Donating to EFF:                    https://eff.org/donate-le
 ```
+
+
+### Import to Keyvault
+
+Only support `.pfx`
+
+![](/imgs/kv-import-byoc.png)
