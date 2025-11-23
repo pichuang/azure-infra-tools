@@ -1,0 +1,3 @@
+certbot-logs/*
+certbot-work/*
+certbot-config/*
