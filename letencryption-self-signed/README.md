@@ -68,9 +68,12 @@ If you like Certbot, please consider supporting our work by:
  * Donating to EFF:                    https://eff.org/donate-le
 ```
 
-
 ### Import to Keyvault
 
 Only support `.pfx`
 
-![](/imgs/kv-import-byoc.png)
+![Import From Byoc](/imgs/kv-import-byoc.png)
+
+### Add from Keyvault
+
+![Add Certificate from AFD](/imgs/afd-add-certificate.png)
