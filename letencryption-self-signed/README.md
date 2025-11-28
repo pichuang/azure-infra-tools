@@ -72,8 +72,8 @@ If you like Certbot, please consider supporting our work by:
 
 Only support `.pfx`
 
-![Import From Byoc](/imgs/kv-import-byoc.png)
+![Import From Byoc](./imgs/kv-import-byoc.png)
 
 ### Add from Keyvault
 
-![Add Certificate from AFD](/imgs/afd-add-certificate.png)
+![Add Certificate from AFD](./imgs/afd-add-certificate.png)
