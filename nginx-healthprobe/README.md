@@ -8,8 +8,10 @@
 - **Rootless 容器** — 以非 root 使用者執行，容器內監聽 port 8080 / 8443（非特權 port），透過 port mapping 對外提供 80 / 443，同時支援 Docker 與 Podman
 - **最小安裝** — 無額外安裝套件（不需要 libcap/setcap），零維護成本
 - **輕量映像** — 基於 `mcr.microsoft.com/azurelinux/base/nginx:1.28`（Microsoft Azure Linux）
-- **JSON 回應** — 結構化輸出，方便 `curl` + `jq` 或程式解析
+- **JSON 回應** — 所有 endpoint 回傳結構化 JSON（含 `http_status` 欄位），方便 `curl` + `jq` 或程式解析
 - **安全強化** — 隱藏 server tokens、唯讀檔案系統、禁止提權
+- **速率限制** — 內建每 IP 每秒 10 次請求限制，防範短時間大量查詢，超過自動回傳 429 並標記為疑似攻擊
+- **請求反射** — `/return` endpoint 回傳用戶端所有常見 HTTP headers 與請求資訊，方便除錯
 
 ## 快速啟動
 
@@ -59,6 +61,7 @@ $ curl -s http://localhost/ | jq .
 ```json
 {
   "status": "healthy",
+  "http_status": 200,
   "timestamp": "2026-03-30T10:15:30+00:00",
   "client_ip": "172.17.0.1",
   "client_port": "54321",
@@ -79,11 +82,120 @@ $ curl -s http://localhost/ | jq .
 wget -qO- http://localhost/ | jq .
 ```
 
+### 請求反射
+
+**GET 請求：**
+
+```bash
+$ curl -s http://localhost/return | jq .
+```
+
+```json
+{
+  "http_status": 200,
+  "timestamp": "2026-03-30T10:15:30+00:00",
+  "request": {
+    "method": "GET",
+    "uri": "/return",
+    "url": "http://localhost/return",
+    "http_version": "HTTP/1.1",
+    "content_type": "",
+    "content_length": ""
+  },
+  "headers": {
+    "host": "localhost",
+    "user_agent": "curl/8.5.0",
+    "accept": "*/*",
+    "accept_encoding": "gzip, deflate",
+    "accept_language": "",
+    "connection": "keep-alive",
+    "cache_control": "",
+    "pragma": "",
+    "referer": "",
+    "origin": "",
+    "x_forwarded_for": "",
+    "x_forwarded_proto": "",
+    "x_forwarded_host": "",
+    "x_real_ip": "",
+    "x_request_id": "",
+    "authorization": ""
+  },
+  "client": {
+    "ip": "172.17.0.1",
+    "port": "54322"
+  }
+}
+```
+
+**POST 請求：**
+
+```bash
+$ curl -s -X POST http://localhost/return \
+  -H "Content-Type: application/json" \
+  -d '{"key": "value"}' | jq .
+```
+
+```json
+{
+  "http_status": 200,
+  "timestamp": "2026-03-30T10:15:32+00:00",
+  "request": {
+    "method": "POST",
+    "uri": "/return",
+    "url": "http://localhost/return",
+    "http_version": "HTTP/1.1",
+    "content_type": "application/json",
+    "content_length": "16"
+  },
+  "headers": {
+    "host": "localhost",
+    "user_agent": "curl/8.5.0",
+    "accept": "*/*",
+    "accept_encoding": "gzip, deflate",
+    "accept_language": "",
+    "connection": "keep-alive",
+    "cache_control": "",
+    "pragma": "",
+    "referer": "",
+    "origin": "",
+    "x_forwarded_for": "",
+    "x_forwarded_proto": "",
+    "x_forwarded_host": "",
+    "x_real_ip": "",
+    "x_request_id": "",
+    "authorization": ""
+  },
+  "client": {
+    "ip": "172.17.0.1",
+    "port": "54323"
+  }
+}
+```
+
+> **備註**：因本專案採用純 Nginx 方案（不依賴 njs/Lua），POST request body 不會被反射回來，但 `request.method`、`request.content_type`、`request.content_length` 及所有 headers 均會完整反射。
+
+### 速率限制觸發範例
+
+當同一 IP 短時間內大量請求超過限制時，回傳 429：
+
+```json
+{
+  "error": "too_many_requests",
+  "http_status": 429,
+  "message": "Rate limit exceeded. You have been flagged as a suspected attacker.",
+  "timestamp": "2026-03-30T10:15:35+00:00",
+  "client_ip": "172.17.0.1"
+}
+```
+
 ## 欄位說明
+
+### 健康探測回應（`/`、`/healthz`）
 
 | 欄位 | 說明 | 用途 |
 |------|------|------|
 | `status` | 服務狀態 (`healthy`) | 確認服務正常運作 |
+| `http_status` | HTTP 狀態碼 | 方便程式解析回應狀態 |
 | `timestamp` | ISO 8601 格式時間戳記 | 確認請求觸發的精確時間 |
 | `client_ip` | 請求端的來源 IP | **辨識自身 IP / 驗證網路路由** |
 | `client_port` | 請求端的來源 Port | 辨識連線來源 |
@@ -96,12 +208,25 @@ wget -qO- http://localhost/ | jq .
 | `accept_encoding` | 用戶端支援的編碼方式 | 確認壓縮編碼（gzip, deflate, br 等） |
 | `accept` | 用戶端接受的 MIME 類型 | 確認請求期望的回應格式 |
 
+### 請求反射回應（`/return`）
+
+| 欄位 | 說明 |
+|------|------|
+| `http_status` | HTTP 狀態碼 |
+| `timestamp` | ISO 8601 格式時間戳記 |
+| `request.*` | 請求資訊（method、uri、url、http_version、content_type、content_length） |
+| `headers.*` | 用戶端傳出的所有常見 HTTP headers（含 proxy 相關 header 與 authorization） |
+| `client.*` | 用戶端連線資訊（ip、port） |
+
 ## Endpoints
 
-| 路徑 | 方法 | 說明 |
-|------|------|------|
-| `/` | GET | 回傳 JSON 健康探測資訊 |
-| `/healthz` | GET | 回傳 JSON 健康探測資訊（相容路徑） |
+| 路徑 | 方法 | HTTP 狀態碼 | 說明 |
+|------|------|------------|------|
+| `/` | GET | 200 | 回傳 JSON 健康探測資訊 |
+| `/healthz` | GET | 200 | 回傳 JSON 健康探測資訊（相容路徑） |
+| `/return` | GET, POST | 200 | 請求反射 — 回傳用戶端所有 HTTP headers 與請求資訊 |
+| 其他路徑 | 任意 | 404 | JSON 錯誤訊息，列出可用 endpoint |
+| 任意（速率限制觸發） | 任意 | 429 | JSON 錯誤訊息，含 `Retry-After` header |
 
 ### 監聽 Port
 
@@ -127,6 +252,14 @@ curl -s http://<SERVER_IP>:443/ | jq .
 
 # /healthz 路徑同樣有效
 curl -s http://<SERVER_IP>/healthz | jq .
+
+# 請求反射 — 查看完整 HTTP headers（GET）
+curl -s http://<SERVER_IP>/return | jq .
+
+# 請求反射 — POST 方式
+curl -s -X POST http://<SERVER_IP>/return \
+  -H "Content-Type: application/json" \
+  -d '{"test": "data"}' | jq .
 
 # 不使用 jq，直接查看原始 JSON
 curl -s http://<SERVER_IP>/
@@ -304,6 +437,50 @@ cat /var/log/nginx-healthprobe/access.log | jq 'select(.client_ip == "10.0.0.1")
 
 # 查詢特定時間範圍的請求
 cat /var/log/nginx-healthprobe/access.log | jq 'select(.timestamp > "2026-03-30T12:00")'
+
+# 查詢所有疑似攻擊者的請求（觸發速率限制）
+cat /var/log/nginx-healthprobe/access.log | jq 'select(.suspected_attack == "true")'
+
+# 統計各 IP 觸發速率限制的次數
+cat /var/log/nginx-healthprobe/access.log | jq -r 'select(.suspected_attack == "true") | .client_ip' | sort | uniq -c | sort -rn
+```
+
+## 速率限制與安全防護
+
+內建基於 IP 的速率限制機制，防範短時間大量查詢：
+
+| 參數 | 值 | 說明 |
+|------|-----|------|
+| `rate` | 10r/s | 每個 IP 每秒最多 10 次請求 |
+| `burst` | 20 | 允許瞬間突發最多 20 個額外請求 |
+| `nodelay` | - | 超過 burst 立即拒絕，不排隊等待 |
+| 拒絕狀態碼 | 429 | Too Many Requests |
+| `Retry-After` | 1 | 建議用戶端 1 秒後重試 |
+
+### 日誌標記
+
+當請求觸發速率限制（HTTP 429）時，稽核日誌會自動在該筆記錄加上 `"suspected_attack":"true"` 標記，方便後續使用 ELK / Azure Monitor / Grafana 等工具篩選與告警：
+
+```json
+{
+  "timestamp": "2026-03-30T10:15:35+00:00",
+  "client_ip": "10.0.0.1",
+  "status": 429,
+  "suspected_attack": "true",
+  "...": "..."
+}
+```
+
+### 自訂速率限制
+
+編輯 `nginx.conf` 中的 `limit_req_zone` 參數可調整限制策略：
+
+```nginx
+# 放寬至每秒 50 次
+ limit_req_zone $binary_remote_addr zone=req_limit:10m rate=50r/s;
+
+# 在 server 區塊調整 burst
+limit_req zone=req_limit burst=100 nodelay;
 ```
 
 ## 授權
