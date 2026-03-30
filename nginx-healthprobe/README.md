@@ -249,44 +249,62 @@ docker run -d -p 自訂Port:8080 -p 自訂Port:8443 nginx-healthprobe
 
 ### 日誌持久化
 
-日誌同時輸出至 stdout/stderr（方便 `docker logs` 查看）及檔案（`/var/log/nginx/`）。透過 volume mount 可將日誌持久保存至主機，容器更新或關閉後日誌不會遺失。
+日誌同時輸出至 stdout/stderr（方便 `docker logs` / `podman logs` 查看）及檔案（`/var/log/nginx/`），採用 JSON 稽核格式。透過 volume 可將日誌持久保存，容器更新或關閉後日誌不會遺失。
 
-**Docker Compose**（已內建於 `docker-compose.yml`）：
+**Docker Compose**（已內建於 `docker-compose.yml`，使用 named volume）：
 
 ```yaml
 volumes:
-  - /var/log/nginx-healthprobe:/var/log/nginx
+  - nginx-logs:/var/log/nginx
 ```
 
-**Docker / Podman（使用主機目錄映射）**：
+**Docker（使用 named volume，推薦）**：
 
 ```bash
-# 建立主機端日誌目錄
-sudo mkdir -p /var/log/nginx-healthprobe
-
-# 啟動容器並掛載日誌目錄
-docker run -d --name nginx-healthprobe \
-  -p 80:8080 -p 443:8443 \
-  -v /var/log/nginx-healthprobe:/var/log/nginx \
-  nginx-healthprobe
-```
-
-**Docker / Podman（使用 named volume）**：
-
-```bash
-# 建立 named volume
-docker volume create nginx-healthprobe-logs
-
-# 啟動容器
 docker run -d --name nginx-healthprobe \
   -p 80:8080 -p 443:8443 \
   -v nginx-healthprobe-logs:/var/log/nginx \
   nginx-healthprobe
 ```
 
-日誌檔案：
-- `access.log` — 存取日誌（每筆 HTTP 請求）
+**Docker（使用主機目錄映射）**：
+
+```bash
+sudo mkdir -p /var/log/nginx-healthprobe
+docker run -d --name nginx-healthprobe \
+  -p 80:8080 -p 443:8443 \
+  -v /var/log/nginx-healthprobe:/var/log/nginx \
+  nginx-healthprobe
+```
+
+**Podman（使用主機目錄映射）**：
+
+> Podman rootless 模式下需加上 `:U` 旗標，自動調整目錄擁有者以匹配容器使用者。
+
+```bash
+sudo mkdir -p /var/log/nginx-healthprobe
+podman run -d --name nginx-healthprobe \
+  -p 80:8080 -p 443:8443 \
+  -v /var/log/nginx-healthprobe:/var/log/nginx:U \
+  nginx-healthprobe
+```
+
+日誌檔案（JSON 稽核格式，每行一筆）：
+- `access.log` — 存取日誌，包含 timestamp、client_ip、request_method、request_uri、user_agent 等稽核欄位
 - `error.log` — 錯誤日誌（warn 等級以上）
+
+查詢範例：
+
+```bash
+# 查看所有存取日誌
+cat /var/log/nginx-healthprobe/access.log | jq .
+
+# 查詢特定 IP 的所有請求
+cat /var/log/nginx-healthprobe/access.log | jq 'select(.client_ip == "10.0.0.1")'
+
+# 查詢特定時間範圍的請求
+cat /var/log/nginx-healthprobe/access.log | jq 'select(.timestamp > "2026-03-30T12:00")'
+```
 
 ## 授權
 

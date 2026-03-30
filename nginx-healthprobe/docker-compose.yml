@@ -12,7 +12,11 @@ services:
     tmpfs:
       - /tmp
     volumes:
-      # 將容器內日誌映射至主機，確保容器更新或關閉後日誌不遺失
-      - /var/log/nginx-healthprobe:/var/log/nginx
+      # 使用 named volume 保存日誌，容器更新或關閉後日誌不會遺失
+      # 若需映射至主機特定目錄，請參考 README 「日誌持久化」章節
+      - nginx-logs:/var/log/nginx
     security_opt:
       - no-new-privileges:true
+
+volumes:
+  nginx-logs:
