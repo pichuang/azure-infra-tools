@@ -22,6 +22,10 @@ RUN rm -f /etc/nginx/nginx.conf.default
 # POSIX TZ 中偏移量符號與 UTC 相反：UTC-8 代表 UTC+8
 ENV TZ=UTC-8
 
+# 設定預設 hostname，方便在多容器環境中辨識來源
+# 可透過 docker run --hostname <name> 或 docker-compose hostname: 覆蓋
+ENV NGINX_HOSTNAME=healthprobe-azure
+
 # 複製自訂 nginx 設定檔
 COPY nginx.conf /etc/nginx/nginx.conf
 
