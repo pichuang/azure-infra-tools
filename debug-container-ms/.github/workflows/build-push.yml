@@ -1,0 +1,67 @@
+name: Build and Push debug-container-ms
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'debug-container-ms/**'
+  workflow_dispatch:
+    inputs:
+      acr_name:
+        description: 'Azure Container Registry name (without .azurecr.io)'
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  IMAGE_NAME: debug-container-ms
+  VERSION: '0.1'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set ACR name
+        id: acr
+        run: |
+          if [ -n "${{ github.event.inputs.acr_name }}" ]; then
+            echo "name=${{ github.event.inputs.acr_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ secrets.ACR_NAME }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: ACR Login
+        run: az acr login --name ${{ steps.acr.outputs.name }}
+
+      - name: Build and Push
+        working-directory: debug-container-ms
+        run: |
+          ACR="${{ steps.acr.outputs.name }}.azurecr.io"
+          TAG_VERSION="${ACR}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}"
+          TAG_SHA="${ACR}/${{ env.IMAGE_NAME }}:sha-${GITHUB_SHA::7}"
+          TAG_DATE="${ACR}/${{ env.IMAGE_NAME }}:$(date +%Y%m%d)"
+          TAG_LATEST="${ACR}/${{ env.IMAGE_NAME }}:latest"
+
+          docker build --platform linux/amd64 \
+            -t "$TAG_VERSION" \
+            -t "$TAG_SHA" \
+            -t "$TAG_DATE" \
+            -t "$TAG_LATEST" \
+            .
+
+          docker push "$TAG_VERSION"
+          docker push "$TAG_SHA"
+          docker push "$TAG_DATE"
+          docker push "$TAG_LATEST"

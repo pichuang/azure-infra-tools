@@ -1,0 +1,22 @@
+# ~/.bashrc — debug-container-ms minimal shell configuration
+
+# Display MOTD on login
+[ -f ~/motd ] && cat ~/motd
+
+# Prompt: [hostname workdir]$
+PS1='\[\033[1;32m\][\h \w]\$\[\033[0m\] '
+
+# Aliases
+alias ll='ls -alF --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'
+alias grep='grep --color=auto'
+
+# History
+HISTSIZE=5000
+HISTFILESIZE=10000
+HISTCONTROL=ignoredups:erasedups
+shopt -s histappend
+
+# PATH
+export PATH="/usr/local/bin:$PATH"

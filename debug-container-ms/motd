@@ -1,0 +1,11 @@
+                        dP                        dP
+                        88                        88
+88d888b. .d8888b. d8888P d8888P .d8888b. .d8888b. 88
+88'  `88 88ooood8   88     88   88'  `88 88'  `88 88
+88    88 88.  ...   88     88   88.  .88 88.  .88 88
+dP    dP `88888P'   dP     dP   `88888P' `88888P' dP
+
+Welcome to debug-container-ms! (Microsoft-supported network troubleshooting container)
+Base Image : Azure Linux 3.0 (mcr.microsoft.com/azurelinux/base/core:3.0)
+Shell      : bash
+
