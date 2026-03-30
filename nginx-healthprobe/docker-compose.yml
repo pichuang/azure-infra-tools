@@ -1,0 +1,18 @@
+services:
+  nginx-healthprobe:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nginx-healthprobe
+    ports:
+      - "80:8080"
+      - "443:8443"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      # 將容器內日誌映射至主機，確保容器更新或關閉後日誌不遺失
+      - /var/log/nginx-healthprobe:/var/log/nginx
+    security_opt:
+      - no-new-privileges:true
