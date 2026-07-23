@@ -292,7 +292,9 @@ docker run -d -p 自訂Port:8080 -p 自訂Port:8443 nginx-healthprobe
 
 ### 日誌持久化
 
-日誌同時輸出至 stdout/stderr（方便 `docker logs` / `podman logs` 查看）及檔案（`/var/log/nginx/`），採用 JSON 稽核格式。透過 volume 可將日誌持久保存，容器更新或關閉後日誌不會遺失。
+stdout 使用人類易讀格式，方便 `docker compose logs -f`、
+`docker logs` 或 `podman logs` 直接觀察。`/var/log/nginx/` 則保留完整
+JSON Lines，方便 `jq`、自動化處理與持久化保存。
 
 **Docker Compose**（已內建於 `docker-compose.yml`，使用 named volume）：
 
@@ -352,8 +354,39 @@ Body 會以 UTF-8 文字記錄；無效 UTF-8 bytes 會顯示為 Unicode replace
 character。`raw_headers` 使用 ordered name/value pairs，保留 header 原始大小寫、
 順序與重複值。
 
-請求反射日誌也會輸出至 stdout，因此可直接使用
-`docker logs` / `podman logs` 查看。
+### Console log
+
+```bash
+docker compose logs -f
+```
+
+每個 SSRF catcher request 只輸出一個多行 block：
+
+```text
+nginx-healthprobe  | === SSRF REQUEST ==================================================
+nginx-healthprobe  | Time       : 2026-07-24T07:00:28+08:00
+nginx-healthprobe  | Request ID : 17f724a427b153d6e3e982afe4661853
+nginx-healthprobe  | Client     : 122.116.34.187:58333
+nginx-healthprobe  | Request    : POST http://echo.example/internal HTTP/1.1
+nginx-healthprobe  | Headers:
+nginx-healthprobe  |   Host: echo.example
+nginx-healthprobe  |   Content-Type: application/json
+nginx-healthprobe  | Body (16 bytes):
+nginx-healthprobe  |   {"key":"value"}
+nginx-healthprobe  | ===================================================================
+```
+
+- 成功的 `/healthz` 不輸出至 stdout，但仍會寫入 `access.log`。
+- 一般 SSRF request 不再重複輸出 audit JSON 與 SSRF JSON。
+- 4xx/5xx 使用單行摘要，例如：
+
+```text
+nginx-healthprobe  | [HTTP 400] 2026-07-24T07:00:27+08:00 client=122.116.34.187:58335 request="-"
+```
+
+- Headers 與 body 中的 ANSI ESC、CR、tab 及其他 control characters 會轉成
+  `\xNN`、`\r`、`\t` 等可見文字，避免控制終端或偽造 log line。
+- `nginx-healthprobe |` prefix 由 Docker Compose 加入，服務本身不控制。
 
 > **安全警告**：`ssrf.log` 會完整記錄 headers 與 request body，可能包含
 > credentials、cookies、tokens、internal metadata、個資或其他敏感資料。

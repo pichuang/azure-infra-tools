@@ -1,4 +1,6 @@
 const BODY_LOG_LIMIT = 64 * 1024;
+const CONSOLE_SEPARATOR =
+  '===================================================================';
 
 function normalizedHeaders(rawHeaders) {
   const headers = Object.create(null);
@@ -41,6 +43,73 @@ function reflectionResponse(r) {
   };
 }
 
+function escapeConsole(value, preserveNewlines) {
+  const text = String(value);
+  let escaped = '';
+
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    const character = text[i];
+
+    if (code === 10) {
+      escaped += preserveNewlines ? '\n' : '\\n';
+    } else if (code === 13) {
+      escaped += '\\r';
+    } else if (code === 9) {
+      escaped += '\\t';
+    } else if (code < 32 || code === 127) {
+      escaped += `\\x${code.toString(16).padStart(2, '0')}`;
+    } else {
+      escaped += character;
+    }
+  }
+
+  return escaped;
+}
+
+function consoleLog(r, response, body, bodyTruncated) {
+  const lines = [
+    `=== SSRF REQUEST ${'='.repeat(50)}`,
+    `Time       : ${escapeConsole(response.timestamp, false)}`,
+    `Request ID : ${escapeConsole(response.request_id, false)}`,
+    `Client     : ${escapeConsole(response.client.ip, false)}:`
+      + escapeConsole(response.client.port, false),
+    `Request    : ${escapeConsole(response.request.method, false)} `
+      + `${escapeConsole(response.request.url, false)} `
+      + escapeConsole(response.request.http_version, false),
+    'Headers:',
+  ];
+
+  if (r.rawHeadersIn.length === 0) {
+    lines.push('  <none>');
+  } else {
+    for (let i = 0; i < r.rawHeadersIn.length; i++) {
+      const name = escapeConsole(r.rawHeadersIn[i][0], false);
+      const value = escapeConsole(r.rawHeadersIn[i][1], false);
+
+      lines.push(`  ${name}: ${value}`);
+    }
+  }
+
+  const truncation = bodyTruncated
+    ? `, showing first ${BODY_LOG_LIMIT} bytes, truncated`
+    : '';
+  lines.push(`Body (${body.length} bytes${truncation}):`);
+
+  if (body.length === 0) {
+    lines.push('  <empty>');
+  } else {
+    const bodyText = escapeConsole(
+      body.subarray(0, BODY_LOG_LIMIT).toString('utf8'),
+      true,
+    );
+    lines.push(`  ${bodyText.split('\n').join('\n  ')}`);
+  }
+
+  lines.push(CONSOLE_SEPARATOR);
+  return lines.join('\n');
+}
+
 function catchRequest(r) {
   const response = reflectionResponse(r);
   const body = r.requestBuffer || Buffer.from('');
@@ -53,6 +122,12 @@ function catchRequest(r) {
   logEntry.request_body_truncated = body.length > BODY_LOG_LIMIT;
 
   r.variables.ssrf_log = JSON.stringify(logEntry);
+  r.variables.ssrf_console_log = consoleLog(
+    r,
+    response,
+    body,
+    logEntry.request_body_truncated,
+  );
   r.headersOut['Content-Type'] = 'application/json';
   r.return(200, JSON.stringify(response, null, 2));
 }

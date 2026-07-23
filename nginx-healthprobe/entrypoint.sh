@@ -29,11 +29,11 @@ chmod 666 /tmp/nginx.pid 2>/dev/null
 
 # 檢查日誌檔是否可寫入
 if [ -w "$LOG_DIR/access.log" ]; then
-    echo "[entrypoint] 日誌目錄權限正常，日誌將寫入 $LOG_DIR"
+    echo "[startup] console=human-readable json=$LOG_DIR/{access,ssrf,error}.log"
 else
-    echo "[entrypoint] 警告：無法寫入 $LOG_DIR，日誌僅輸出至 stdout/stderr"
-    ln -sf /dev/stdout "$LOG_DIR/access.log" 2>/dev/null || true
-    ln -sf /dev/stdout "$LOG_DIR/ssrf.log" 2>/dev/null || true
+    echo "[startup] warning: $LOG_DIR is not writable; JSON logs disabled"
+    ln -sf /dev/null "$LOG_DIR/access.log" 2>/dev/null || true
+    ln -sf /dev/null "$LOG_DIR/ssrf.log" 2>/dev/null || true
     ln -sf /dev/stderr "$LOG_DIR/error.log" 2>/dev/null || true
 fi
 
