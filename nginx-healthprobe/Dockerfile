@@ -1,8 +1,8 @@
 # =============================================================================
-# Nginx Health Probe 容器
+# Nginx SSRF Catcher 容器
 # =============================================================================
 # 基礎映像 : mcr.microsoft.com/azurelinux/base/nginx:1.28 (Azure Linux 3.0)
-# 用途     : 透過純 nginx 提供輕量級 JSON 健康探測 endpoint
+# 用途     : 捕捉並記錄 SSRF 測試請求，並提供 /healthz 健康探測
 # Port     : 8080 (HTTP), 8443 (HTTPS-ready)
 # 執行身分 : nginx (非 root, UID 999)，透過 entrypoint 腳本切換
 # 備註     : 透過主機端 port mapping 對外提供標準 port：
@@ -12,7 +12,7 @@
 FROM mcr.microsoft.com/azurelinux/base/nginx:1.28
 
 LABEL maintainer="pichuang" \
-      description="Nginx health probe endpoint for network connectivity diagnostics" \
+      description="Nginx SSRF request catcher with JSON logging" \
       org.opencontainers.image.base.name="mcr.microsoft.com/azurelinux/base/nginx:1.28"
 
 # 移除預設 server block，改用自訂設定
@@ -28,6 +28,9 @@ ENV NGINX_HOSTNAME=healthprobe-azure
 
 # 複製自訂 nginx 設定檔
 COPY nginx.conf /etc/nginx/nginx.conf
+
+# 複製 SSRF catcher 使用的 njs handler
+COPY ssrf-handler.js /etc/nginx/ssrf-handler.js
 
 # 複製啟動入口腳本（處理 bind mount 權限問題後以 nginx 使用者啟動服務）
 COPY entrypoint.sh /entrypoint.sh

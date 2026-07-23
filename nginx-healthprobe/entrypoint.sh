@@ -12,8 +12,10 @@ LOG_DIR="/var/log/nginx"
 
 # 以 root 修正日誌目錄權限
 chown -R nginx:nginx "$LOG_DIR" 2>/dev/null
-touch "$LOG_DIR/access.log" "$LOG_DIR/error.log" 2>/dev/null
-chown nginx:nginx "$LOG_DIR/access.log" "$LOG_DIR/error.log" 2>/dev/null
+touch "$LOG_DIR/access.log" "$LOG_DIR/error.log" \
+  "$LOG_DIR/ssrf.log" 2>/dev/null
+chown nginx:nginx "$LOG_DIR/access.log" "$LOG_DIR/error.log" \
+  "$LOG_DIR/ssrf.log" 2>/dev/null
 
 # 確保 /tmp 目錄下的暫存檔和 PID 檔可由 nginx 使用者寫入
 # （read_only + tmpfs 模式下，build 階段的權限設定會被覆蓋）
@@ -31,6 +33,7 @@ if [ -w "$LOG_DIR/access.log" ]; then
 else
     echo "[entrypoint] 警告：無法寫入 $LOG_DIR，日誌僅輸出至 stdout/stderr"
     ln -sf /dev/stdout "$LOG_DIR/access.log" 2>/dev/null || true
+    ln -sf /dev/stdout "$LOG_DIR/ssrf.log" 2>/dev/null || true
     ln -sf /dev/stderr "$LOG_DIR/error.log" 2>/dev/null || true
 fi
 

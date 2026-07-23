@@ -1,17 +1,19 @@
-# Nginx Health Probe
+# Nginx SSRF Catcher
 
-輕量級 Nginx 容器，提供 `/healthz` JSON endpoint，回傳網路連線診斷資訊（來源 IP、觸發時間、User Agent 等），協助使用者快速驗證網路是否通順。
+輕量級 Nginx 容器，用來接收、反射並記錄 SSRF 測試請求。
+`/healthz` 提供健康探測；其他所有 path 與 HTTP method 都會進入 catcher。
 
 ## 特色
 
-- **純 Nginx 方案** — 不依賴額外後端服務或模組（njs、Lua 等），零額外相依性
+- **Nginx + njs 方案** — 使用映像內建的 njs，不依賴額外後端服務
 - **Rootless 容器** — 以非 root 使用者執行，容器內監聽 port 8080 / 8443（非特權 port），透過 port mapping 對外提供 80 / 443，同時支援 Docker 與 Podman
 - **最小安裝** — 無額外安裝套件（不需要 libcap/setcap），零維護成本
 - **輕量映像** — 基於 `mcr.microsoft.com/azurelinux/base/nginx:1.28`（Microsoft Azure Linux）
-- **JSON 回應** — 所有 endpoint 回傳結構化 JSON（含 `http_status` 欄位），方便 `curl` + `jq` 或程式解析
+- **全路徑捕捉** — 除 `/healthz` 外，任意 path、query string 與 HTTP method 都會回傳反射 JSON
+- **完整請求記錄** — 記錄 request metadata、所有 headers、重複 headers、client 資訊與最多 64 KiB body
+- **Request ID** — 沿用來電 `X-Request-ID`，未提供時自動產生，方便對應 response 與 log
 - **安全強化** — 隱藏 server tokens、唯讀檔案系統、禁止提權
 - **速率限制** — 內建每 IP 每秒 10 次請求限制，防範短時間大量查詢，超過自動回傳 429 並標記為疑似攻擊
-- **請求反射** — `/return` endpoint 回傳用戶端所有常見 HTTP headers 與請求資訊，方便除錯
 
 ## 快速啟動
 
@@ -24,9 +26,11 @@ docker build -t nginx-healthprobe .
 # 啟動容器（容器內 8080/8443 映射至主機 80/443）
 docker run -d --name nginx-healthprobe -p 80:8080 -p 443:8443 nginx-healthprobe
 
-# 測試（直接 curl 即可，不需要指定路徑）
-curl -s http://localhost/ | jq .
-curl -s http://localhost:443/ | jq .
+# 健康探測
+curl -s http://localhost/healthz | jq .
+
+# SSRF catcher
+curl -s "http://localhost/internal/metadata?source=test" | jq .
 ```
 
 ### Podman (Rootless)
@@ -39,8 +43,8 @@ podman build -t nginx-healthprobe .
 podman run -d --name nginx-healthprobe -p 80:8080 -p 443:8443 nginx-healthprobe
 
 # 測試
-curl -s http://localhost/ | jq .
-curl -s http://localhost:443/ | jq .
+curl -s http://localhost/healthz | jq .
+curl -s http://localhost:443/ssrf-test | jq .
 ```
 
 ### Docker Compose
@@ -49,121 +53,40 @@ curl -s http://localhost:443/ | jq .
 docker compose up -d
 
 # 測試
-curl -s http://localhost/ | jq .
+curl -s http://localhost/healthz | jq .
 ```
 
-## 範例輸出
+## SSRF 捕捉範例
 
 ```bash
-$ curl -s http://localhost/ | jq .
-```
-
-```json
-{
-  "status": "healthy",
-  "http_status": 200,
-  "timestamp": "2026-03-30T10:15:30+00:00",
-  "client_ip": "172.17.0.1",
-  "client_port": "54321",
-  "x_forwarded_for": "",
-  "request_method": "GET",
-  "request_uri": "/",
-  "http_host": "localhost",
-  "user_agent": "curl/8.5.0",
-  "http_version": "HTTP/1.1",
-  "accept_encoding": "gzip, deflate",
-  "accept": "*/*"
-}
-```
-
-使用 `wget` 測試：
-
-```bash
-wget -qO- http://localhost/ | jq .
-```
-
-### 請求反射
-
-**GET 請求：**
-
-```bash
-$ curl -s http://localhost/return | jq .
-```
-
-```json
-{
-  "http_status": 200,
-  "timestamp": "2026-03-30T10:15:30+00:00",
-  "request": {
-    "method": "GET",
-    "uri": "/return",
-    "url": "http://localhost/return",
-    "http_version": "HTTP/1.1",
-    "content_type": "",
-    "content_length": ""
-  },
-  "headers": {
-    "host": "localhost",
-    "user_agent": "curl/8.5.0",
-    "accept": "*/*",
-    "accept_encoding": "gzip, deflate",
-    "accept_language": "",
-    "connection": "keep-alive",
-    "cache_control": "",
-    "pragma": "",
-    "referer": "",
-    "origin": "",
-    "x_forwarded_for": "",
-    "x_forwarded_proto": "",
-    "x_forwarded_host": "",
-    "x_real_ip": "",
-    "x_request_id": "",
-    "authorization": ""
-  },
-  "client": {
-    "ip": "172.17.0.1",
-    "port": "54322"
-  }
-}
-```
-
-**POST 請求：**
-
-```bash
-$ curl -s -X POST http://localhost/return \
+$ curl -s -X POST "http://localhost/internal/metadata?source=app" \
+  -H "X-Request-ID: ssrf-test-001" \
+  -H "X-Debug: first" \
+  -H "X-Debug: second" \
+  -H "Authorization: Bearer test-token" \
   -H "Content-Type: application/json" \
   -d '{"key": "value"}' | jq .
 ```
 
 ```json
 {
+  "request_id": "ssrf-test-001",
   "http_status": 200,
   "timestamp": "2026-03-30T10:15:32+00:00",
   "request": {
     "method": "POST",
-    "uri": "/return",
-    "url": "http://localhost/return",
+    "uri": "/internal/metadata?source=app",
+    "url": "http://localhost/internal/metadata?source=app",
     "http_version": "HTTP/1.1",
     "content_type": "application/json",
     "content_length": "16"
   },
   "headers": {
     "host": "localhost",
-    "user_agent": "curl/8.5.0",
-    "accept": "*/*",
-    "accept_encoding": "gzip, deflate",
-    "accept_language": "",
-    "connection": "keep-alive",
-    "cache_control": "",
-    "pragma": "",
-    "referer": "",
-    "origin": "",
-    "x_forwarded_for": "",
-    "x_forwarded_proto": "",
-    "x_forwarded_host": "",
-    "x_real_ip": "",
-    "x_request_id": "",
-    "authorization": ""
+    "x-request-id": "ssrf-test-001",
+    "x-debug": ["first", "second"],
+    "authorization": "Bearer test-token",
+    "content-type": "application/json"
   },
   "client": {
     "ip": "172.17.0.1",
@@ -172,7 +95,8 @@ $ curl -s -X POST http://localhost/return \
 }
 ```
 
-> **備註**：因本專案採用純 Nginx 方案（不依賴 njs/Lua），POST request body 不會被反射回來，但 `request.method`、`request.content_type`、`request.content_length` 及所有 headers 均會完整反射。
+Response header 也會包含相同的 `X-Request-ID`。HTTP 回應不包含 request
+body，但 njs 會將 body 寫入 `ssrf.log`。
 
 ### 速率限制觸發範例
 
@@ -190,7 +114,7 @@ $ curl -s -X POST http://localhost/return \
 
 ## 欄位說明
 
-### 健康探測回應（`/`、`/healthz`）
+### 健康探測回應（`/healthz`）
 
 | 欄位 | 說明 | 用途 |
 |------|------|------|
@@ -198,34 +122,24 @@ $ curl -s -X POST http://localhost/return \
 | `http_status` | HTTP 狀態碼 | 方便程式解析回應狀態 |
 | `timestamp` | ISO 8601 格式時間戳記 | 確認請求觸發的精確時間 |
 | `client_ip` | 請求端的來源 IP | **辨識自身 IP / 驗證網路路由** |
-| `client_port` | 請求端的來源 Port | 辨識連線來源 |
-| `x_forwarded_for` | 代理轉發的原始 IP 鏈 | 在反向代理後追蹤真實來源 IP |
-| `request_method` | HTTP 請求方法 | 確認請求類型 |
-| `request_uri` | 請求的 URI 路徑 | 確認請求路徑 |
-| `http_host` | HTTP Host header | 確認請求的目標主機 |
-| `user_agent` | 用戶端 User Agent | 辨識用戶端工具 (curl/wget/瀏覽器) |
-| `http_version` | HTTP 協議版本 | 確認使用的 HTTP 版本 |
-| `accept_encoding` | 用戶端支援的編碼方式 | 確認壓縮編碼（gzip, deflate, br 等） |
-| `accept` | 用戶端接受的 MIME 類型 | 確認請求期望的回應格式 |
-
-### 請求反射回應（`/return`）
+### SSRF catcher 回應
 
 | 欄位 | 說明 |
 |------|------|
+| `request_id` | Response header 與 log 共用的 correlation ID |
 | `http_status` | HTTP 狀態碼 |
 | `timestamp` | ISO 8601 格式時間戳記 |
 | `request.*` | 請求資訊（method、uri、url、http_version、content_type、content_length） |
-| `headers.*` | 用戶端傳出的所有常見 HTTP headers（含 proxy 相關 header 與 authorization） |
+| `headers.*` | 所有 headers 的 normalized view；重複值使用 array |
 | `client.*` | 用戶端連線資訊（ip、port） |
 
 ## Endpoints
 
 | 路徑 | 方法 | HTTP 狀態碼 | 說明 |
 |------|------|------------|------|
-| `/` | GET | 200 | 回傳 JSON 健康探測資訊 |
-| `/healthz` | GET | 200 | 回傳 JSON 健康探測資訊（相容路徑） |
-| `/return` | GET, POST | 200 | 請求反射 — 回傳用戶端所有 HTTP headers 與請求資訊 |
-| 其他路徑 | 任意 | 404 | JSON 錯誤訊息，列出可用 endpoint |
+| `/healthz` | GET | 200 | 回傳 JSON 健康探測資訊 |
+| `/healthz` | OPTIONS | 204 | 健康探測 CORS preflight |
+| 其他所有 path | 任意 | 200 | SSRF catcher，回傳 request reflection JSON |
 | 任意（速率限制觸發） | 任意 | 429 | JSON 錯誤訊息，含 `Retry-After` header |
 
 ### 監聽 Port
@@ -244,41 +158,36 @@ $ curl -s -X POST http://localhost/return \
 ### 基本查詢
 
 ```bash
-# 直接 curl 網址即可（不需指定路徑）
-curl -s http://<SERVER_IP>/ | jq .
-
-# 使用 443 port
-curl -s http://<SERVER_IP>:443/ | jq .
-
-# /healthz 路徑同樣有效
+# 健康探測
 curl -s http://<SERVER_IP>/healthz | jq .
 
-# 請求反射 — 查看完整 HTTP headers（GET）
-curl -s http://<SERVER_IP>/return | jq .
+# 捕捉任意 path 與 query string
+curl -s "http://<SERVER_IP>/latest/meta-data/?token=test" | jq .
 
-# 請求反射 — POST 方式
-curl -s -X POST http://<SERVER_IP>/return \
+# 捕捉 PUT body
+curl -s -X PUT http://<SERVER_IP>/internal/api \
+  -H "X-Request-ID: ssrf-test-002" \
   -H "Content-Type: application/json" \
   -d '{"test": "data"}' | jq .
 
 # 不使用 jq，直接查看原始 JSON
-curl -s http://<SERVER_IP>/
+curl -s http://<SERVER_IP>/any/path
 ```
 
 ### 只取特定欄位
 
 ```bash
-# 只看自己的來源 IP
-curl -s http://<SERVER_IP>/ | jq -r '.client_ip'
+# 只看來源 IP
+curl -s http://<SERVER_IP>/test | jq -r '.client.ip'
 
 # 只看時間戳記
-curl -s http://<SERVER_IP>/ | jq -r '.timestamp'
+curl -s http://<SERVER_IP>/test | jq -r '.timestamp'
 
 # 同時取得 IP 和時間
-curl -s http://<SERVER_IP>/ | jq '{client_ip, timestamp}'
+curl -s http://<SERVER_IP>/test | jq '{request_id, client, timestamp}'
 
-# 取得編碼與 MIME 類型資訊
-curl -s http://<SERVER_IP>/ | jq '{accept_encoding, accept}'
+# 取得所有 headers
+curl -s http://<SERVER_IP>/test | jq '.headers'
 ```
 
 ### 含 HTTP Header 的詳細輸出
@@ -295,10 +204,10 @@ curl -v http://<SERVER_IP>/
 
 ```bash
 # 基本查詢
-wget -qO- http://<SERVER_IP>/ | jq .
+wget -qO- http://<SERVER_IP>/ssrf-test | jq .
 
 # 只看來源 IP
-wget -qO- http://<SERVER_IP>/ | jq -r '.client_ip'
+wget -qO- http://<SERVER_IP>/ssrf-test | jq -r '.client.ip'
 ```
 
 ### 連線測試腳本（持續監控）
@@ -306,7 +215,8 @@ wget -qO- http://<SERVER_IP>/ | jq -r '.client_ip'
 ```bash
 # 每 5 秒探測一次，印出時間和來源 IP
 while true; do
-  curl -s http://<SERVER_IP>/ | jq -r '[.timestamp, .client_ip] | join(" | ")'
+  curl -s http://<SERVER_IP>/ssrf-test \
+    | jq -r '[.timestamp, .client.ip] | join(" | ")'
   sleep 5
 done
 ```
@@ -315,23 +225,23 @@ done
 
 ```powershell
 # 基本查詢
-Invoke-RestMethod -Uri "http://<SERVER_IP>/"
+Invoke-RestMethod -Uri "http://<SERVER_IP>/ssrf-test"
 
 # 只看來源 IP
-(Invoke-RestMethod -Uri "http://<SERVER_IP>/").client_ip
+(Invoke-RestMethod -Uri "http://<SERVER_IP>/ssrf-test").client.ip
 
 # 格式化 JSON 輸出
-Invoke-RestMethod -Uri "http://<SERVER_IP>/" | ConvertTo-Json
+Invoke-RestMethod -Uri "http://<SERVER_IP>/ssrf-test" | ConvertTo-Json
 ```
 
 ### 判斷連線是否正常（用於自動化腳本）
 
 ```bash
 # 回傳 0 表示連線正常，非 0 表示異常
-if curl -sf http://<SERVER_IP>/ > /dev/null; then
+if curl -sf http://<SERVER_IP>/healthz > /dev/null; then
   echo "✅ 網路連線正常"
 else
-  echo "❌ 無法連線至 health probe"
+  echo "❌ 無法連線至 SSRF catcher"
 fi
 ```
 
@@ -424,13 +334,44 @@ podman run -d --name nginx-healthprobe \
 
 日誌檔案（JSON 稽核格式，每行一筆）：
 - `access.log` — 存取日誌，包含 timestamp、client_ip、request_method、request_uri、user_agent 等稽核欄位
+- `ssrf.log` — 記錄 `/healthz` 以外的 catcher 請求，包含 request ID、
+  request、normalized headers、raw duplicate headers、client 與 body
 - `error.log` — 錯誤日誌（warn 等級以上）
+
+`ssrf.log` 的 request body 最多記錄 64 KiB。超過上限時，
+`request_body` 只保留前 64 KiB，並設定：
+
+```json
+{
+  "request_body_bytes": 70000,
+  "request_body_truncated": true
+}
+```
+
+Body 會以 UTF-8 文字記錄；無效 UTF-8 bytes 會顯示為 Unicode replacement
+character。`raw_headers` 使用 ordered name/value pairs，保留 header 原始大小寫、
+順序與重複值。
+
+請求反射日誌也會輸出至 stdout，因此可直接使用
+`docker logs` / `podman logs` 查看。
+
+> **安全警告**：`ssrf.log` 會完整記錄 headers 與 request body，可能包含
+> credentials、cookies、tokens、internal metadata、個資或其他敏感資料。
+> 本服務應只部署在受控測試環境；請限制網路入口、日誌存取權限、保留期限，
+> 並避免將未遮罩的日誌匯出到不受信任的系統。
 
 查詢範例：
 
 ```bash
 # 查看所有存取日誌
 cat /var/log/nginx-healthprobe/access.log | jq .
+
+# 查看 SSRF catcher 的完整請求日誌
+cat /var/log/nginx-healthprobe/ssrf.log | jq .
+
+# 使用 response 的 request_id 查詢對應 log
+cat /var/log/nginx-healthprobe/ssrf.log \
+  | jq 'select(.request_id == "ssrf-test-001")'
 
 # 查詢特定 IP 的所有請求
 cat /var/log/nginx-healthprobe/access.log | jq 'select(.client_ip == "10.0.0.1")'
