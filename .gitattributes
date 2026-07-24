@@ -1,0 +1,6 @@
+# 強制以下檔案類型使用 LF 換行，避免在 Windows 上被 Git 轉換為 CRLF
+# 導致容器內 shell script 的 shebang 失效（exec: operation not permitted / no such file or directory）
+*.sh text eol=lf
+entrypoint.sh text eol=lf
+*.bash text eol=lf
+Dockerfile text eol=lf
