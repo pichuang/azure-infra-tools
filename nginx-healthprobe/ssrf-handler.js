@@ -31,51 +31,51 @@ function reflectionEvent(r, body) {
   const capturedBody = body.subarray(0, BODY_LOG_LIMIT);
 
   const event = {
-      request_id: r.variables.correlation_id,
-      http_status: 200,
-      timestamp: r.variables.time_iso8601,
-      request: {
-        method: r.method,
-        scheme: r.variables.scheme,
-        host: r.variables.http_host,
-        path: r.variables.uri,
-        query: r.variables.args || '',
-        uri: r.variables.request_uri,
-        url: `${r.variables.scheme}://${r.variables.http_host}`
-          + r.variables.request_uri,
-        http_version: r.variables.server_protocol,
-        content_type: r.variables.content_type || null,
-        content_length: r.variables.content_length || null,
-      },
-      headers,
-      raw_headers: r.rawHeadersIn,
-      body: {
-        text: capturedBody.toString('utf8'),
-        encoding: 'utf-8',
-        bytes: body.length,
-        captured_bytes: capturedBody.length,
-        truncated: body.length > BODY_LOG_LIMIT,
-        limit_bytes: BODY_LOG_LIMIT,
-      },
-      client: {
-        ip: r.remoteAddress,
-        port: r.variables.remote_port,
-        source: 'socket',
-      },
-      declared_forwarding: {
-        trusted: false,
-        forwarded: headerValue(headers, 'forwarded'),
-        x_forwarded_for: headerValue(headers, 'x-forwarded-for'),
-        x_real_ip: headerValue(headers, 'x-real-ip'),
-      },
-      server: {
-        address: r.variables.server_addr,
-        port: r.variables.server_port,
-        hostname: r.variables.hostname,
-      },
-      timing: {
-        handler_ms: 0,
-      },
+    request_id: r.variables.correlation_id,
+    http_status: 200,
+    timestamp: r.variables.time_iso8601,
+    request: {
+      method: r.method,
+      scheme: r.variables.scheme,
+      host: r.variables.http_host,
+      path: r.variables.uri,
+      query: r.variables.args || '',
+      uri: r.variables.request_uri,
+      url: `${r.variables.scheme}://${r.variables.http_host}`
+        + r.variables.request_uri,
+      http_version: r.variables.server_protocol,
+      content_type: r.variables.content_type || null,
+      content_length: r.variables.content_length || null,
+    },
+    headers,
+    raw_headers: r.rawHeadersIn,
+    body: {
+      text: capturedBody.toString('utf8'),
+      encoding: 'utf-8',
+      bytes: body.length,
+      captured_bytes: capturedBody.length,
+      truncated: body.length > BODY_LOG_LIMIT,
+      limit_bytes: BODY_LOG_LIMIT,
+    },
+    client: {
+      ip: r.remoteAddress,
+      port: r.variables.remote_port,
+      source: 'socket',
+    },
+    declared_forwarding: {
+      trusted: false,
+      forwarded: headerValue(headers, 'forwarded'),
+      x_forwarded_for: headerValue(headers, 'x-forwarded-for'),
+      x_real_ip: headerValue(headers, 'x-real-ip'),
+    },
+    server: {
+      address: r.variables.server_addr,
+      port: r.variables.server_port,
+      hostname: r.variables.hostname,
+    },
+    timing: {
+      handler_ms: 0,
+    },
   };
 
   event.timing.handler_ms = Date.now() - startedAt;

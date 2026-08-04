@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-05
+
+- 將 HTTP response、`ssrf.log` 與 console log 統一為共用鑑識 event。
+- Response 新增 raw headers、最多 64 KiB request body、query、server 與 handler timing。
+- 明確區分可信任 socket IP 與未驗證的 forwarding headers 宣告。
+- 擴充 audit log 的 request ID、server、request size/time 欄位並啟用 JSON escaping。
+
 ## 2026-07-24
 
 - 新增 `/return` 專用 JSON 請求反射日誌。

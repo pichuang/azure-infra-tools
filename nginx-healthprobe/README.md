@@ -10,7 +10,7 @@
 - **最小安裝** — 無額外安裝套件（不需要 libcap/setcap），零維護成本
 - **輕量映像** — 基於 `mcr.microsoft.com/azurelinux/base/nginx:1.28`（Microsoft Azure Linux）
 - **全路徑捕捉** — 除 `/healthz` 外，任意 path、query string 與 HTTP method 都會回傳反射 JSON
-- **完整請求記錄** — 記錄 request metadata、所有 headers、重複 headers、client 資訊與最多 64 KiB body
+- **完整請求鑑識** — 回顯並記錄 request metadata、所有 headers、重複 headers、socket/server 資訊、未驗證的代理宣告與最多 64 KiB body
 - **Request ID** — 沿用來電 `X-Request-ID`，未提供時自動產生，方便對應 response 與 log
 - **安全強化** — 隱藏 server tokens、唯讀檔案系統、禁止提權
 - **速率限制** — 內建每 IP 每秒 10 次請求限制，防範短時間大量查詢，超過自動回傳 429 並標記為疑似攻擊
@@ -75,6 +75,10 @@ $ curl -s -X POST "http://localhost/internal/metadata?source=app" \
   "timestamp": "2026-03-30T10:15:32+00:00",
   "request": {
     "method": "POST",
+    "scheme": "http",
+    "host": "localhost",
+    "path": "/internal/metadata",
+    "query": "source=app",
     "uri": "/internal/metadata?source=app",
     "url": "http://localhost/internal/metadata?source=app",
     "http_version": "HTTP/1.1",
@@ -88,15 +92,47 @@ $ curl -s -X POST "http://localhost/internal/metadata?source=app" \
     "authorization": "Bearer test-token",
     "content-type": "application/json"
   },
+  "raw_headers": [
+    ["Host", "localhost"],
+    ["X-Debug", "first"],
+    ["X-Debug", "second"]
+  ],
+  "body": {
+    "text": "{\"key\": \"value\"}",
+    "encoding": "utf-8",
+    "bytes": 16,
+    "captured_bytes": 16,
+    "truncated": false,
+    "limit_bytes": 65536
+  },
   "client": {
     "ip": "172.17.0.1",
-    "port": "54323"
+    "port": "54323",
+    "source": "socket"
+  },
+  "declared_forwarding": {
+    "trusted": false,
+    "forwarded": null,
+    "x_forwarded_for": null,
+    "x_real_ip": null
+  },
+  "server": {
+    "address": "172.17.0.2",
+    "port": "8080",
+    "hostname": "healthprobe-azure"
+  },
+  "timing": {
+    "handler_ms": 0
   }
 }
 ```
 
-Response header 也會包含相同的 `X-Request-ID`。HTTP 回應不包含 request
-body，但 njs 會將 body 寫入 `ssrf.log`。
+Response header 也會包含相同的 `X-Request-ID`。HTTP 回應與 `ssrf.log`
+使用相同的鑑識 event；body 最多回顯及記錄 64 KiB。
+
+`client.ip` 與 `client.port` 直接來自 TCP socket，是本服務唯一視為可信任的
+client 來源。`Forwarded`、`X-Forwarded-For` 與 `X-Real-IP` 會原樣顯示於
+`declared_forwarding`，但固定標示為 `trusted: false`，且不會覆寫 socket IP。
 
 ### 速率限制觸發範例
 
@@ -129,9 +165,14 @@ body，但 njs 會將 body 寫入 `ssrf.log`。
 | `request_id` | Response header 與 log 共用的 correlation ID |
 | `http_status` | HTTP 狀態碼 |
 | `timestamp` | ISO 8601 格式時間戳記 |
-| `request.*` | 請求資訊（method、uri、url、http_version、content_type、content_length） |
+| `request.*` | 請求資訊（method、scheme、host、path、query、uri、url、HTTP version 與 content metadata） |
 | `headers.*` | 所有 headers 的 normalized view；重複值使用 array |
-| `client.*` | 用戶端連線資訊（ip、port） |
+| `raw_headers` | 按接收順序保留原始大小寫與重複值的 name/value pairs |
+| `body.*` | UTF-8 文字、原始/捕捉位元組數、64 KiB 上限與截斷狀態 |
+| `client.*` | 可信任的 TCP socket 連線資訊（ip、port、source） |
+| `declared_forwarding.*` | Client 宣告但未驗證的代理來源資訊，不用於身分判定 |
+| `server.*` | 接收請求的 server address、port 與 hostname |
+| `timing.handler_ms` | njs 建構鑑識 event 所需的毫秒數 |
 
 ## Endpoints
 
@@ -188,6 +229,12 @@ curl -s http://<SERVER_IP>/test | jq '{request_id, client, timestamp}'
 
 # 取得所有 headers
 curl -s http://<SERVER_IP>/test | jq '.headers'
+
+# 同時檢視可信任 socket IP 與未驗證代理宣告
+curl -s http://<SERVER_IP>/test \
+  -H 'Forwarded: for=203.0.113.8;proto=https' \
+  -H 'X-Forwarded-For: 203.0.113.8, 198.51.100.4' \
+  | jq '{client, declared_forwarding}'
 ```
 
 ### 含 HTTP Header 的詳細輸出
@@ -340,13 +387,17 @@ podman run -d --name nginx-healthprobe \
   request、normalized headers、raw duplicate headers、client 與 body
 - `error.log` — 錯誤日誌（warn 等級以上）
 
-`ssrf.log` 的 request body 最多記錄 64 KiB。超過上限時，
-`request_body` 只保留前 64 KiB，並設定：
+HTTP response 與 `ssrf.log` 的 request body 最多保留 64 KiB。超過上限時，
+`body.text` 只保留前 64 KiB，並設定：
 
 ```json
 {
-  "request_body_bytes": 70000,
-  "request_body_truncated": true
+  "body": {
+    "bytes": 70000,
+    "captured_bytes": 65536,
+    "truncated": true,
+    "limit_bytes": 65536
+  }
 }
 ```
 
@@ -388,8 +439,9 @@ nginx-healthprobe  | [HTTP 400] 2026-07-24T07:00:27+08:00 client=122.116.34.187:
   `\xNN`、`\r`、`\t` 等可見文字，避免控制終端或偽造 log line。
 - `nginx-healthprobe |` prefix 由 Docker Compose 加入，服務本身不控制。
 
-> **安全警告**：`ssrf.log` 會完整記錄 headers 與 request body，可能包含
-> credentials、cookies、tokens、internal metadata、個資或其他敏感資料。
+> **安全警告**：HTTP response 與 `ssrf.log` 都會原樣包含 headers 與 request
+> body，可能暴露 credentials、cookies、tokens、internal metadata、個資或其他
+> 敏感資料。任何能送出請求並讀取 response 的 client 都能看到自己提交的機密。
 > 本服務應只部署在受控測試環境；請限制網路入口、日誌存取權限、保留期限，
 > 並避免將未遮罩的日誌匯出到不受信任的系統。
 
