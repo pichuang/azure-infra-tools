@@ -48,7 +48,6 @@ function reflectionEvent(r, body) {
       content_length: r.variables.content_length || null,
     },
     headers,
-    raw_headers: r.rawHeadersIn,
     body: {
       text: capturedBody.toString('utf8'),
       encoding: 'utf-8',
@@ -132,14 +131,20 @@ function consoleLog(event) {
     'Headers:',
   ];
 
-  if (event.raw_headers.length === 0) {
+  const headerNames = Object.keys(event.headers);
+
+  if (headerNames.length === 0) {
     lines.push('  <none>');
   } else {
-    for (let i = 0; i < event.raw_headers.length; i++) {
-      const name = escapeConsole(event.raw_headers[i][0], false);
-      const value = escapeConsole(event.raw_headers[i][1], false);
+    for (let i = 0; i < headerNames.length; i++) {
+      const name = escapeConsole(headerNames[i], false);
+      const values = Array.isArray(event.headers[headerNames[i]])
+        ? event.headers[headerNames[i]]
+        : [event.headers[headerNames[i]]];
 
-      lines.push(`  ${name}: ${value}`);
+      for (let j = 0; j < values.length; j++) {
+        lines.push(`  ${name}: ${escapeConsole(values[j], false)}`);
+      }
     }
   }
 
