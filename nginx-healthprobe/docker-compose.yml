@@ -12,11 +12,8 @@ services:
     tmpfs:
       - /tmp
     volumes:
-      # 使用 named volume 保存日誌，容器更新或關閉後日誌不會遺失
-      # 若需映射至主機特定目錄，請參考 README 「日誌持久化」章節
-      - nginx-logs:/var/log/nginx
+      - /var/log/nginx:/var/log/nginx
+      - /root/.acme.sh/echo.pichuang.com.tw_ecc/fullchain.cer:/etc/nginx/tls/fullchain.cer:ro
+      - /root/.acme.sh/echo.pichuang.com.tw_ecc/echo.pichuang.com.tw.key:/etc/nginx/tls/privkey.key:ro
     security_opt:
-      - no-new-privileges:true
-
-volumes:
-  nginx-logs:
+      - no-new-privileges:false
